@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <b>LLM-powered log parser with anomaly flags 🧠💡</b><br>
+  <b>LLM-powered log parser with anomaly flags by ABI-Research 🧠💡</b><br>
   <em>From raw logs → structured sessions → statistical anomalies → AI-written analyst notes</em>
 </p>
 
