@@ -116,7 +116,7 @@ Gebruik het, wijzig het, deel het — zolang de credits behouden blijven.
 </p>
 
 <p align="center">
-  <a href="https://github.com/<jouw-username>">
+  <a href="https://github.com/"NookiDooki">
     <img src="https://img.shields.io/github/stars/NookiDooki/Watchpath?style=social" />
   </a>
   <a href="https://ollama.com">
