@@ -126,4 +126,3 @@ Gebruik het, wijzig het, deel het — zolang de credits behouden blijven.
     <img src="https://img.shields.io/badge/Made%20with-Python%20🐍-green?logo=python" />
   </a>
 </p>
-```
