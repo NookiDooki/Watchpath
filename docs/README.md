@@ -1,63 +1,56 @@
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:1e3c72,100:2a5298&height=140&section=header&text=🔍%20Watchpath%20Log-Analyst&fontSize=34&fontColor=fff&animation=fadeIn&fontAlignY=35"/>
+  <img src="./A_digital_graphic_design_banner_for_the_Watchpath.png" width="100%" alt="Watchpath Log-Analyst Banner"/>
 </p>
 
 <p align="center">
-  <b>AI + Security Research Initiative</b><br>
-  <em>From raw logs to explainable anomalies — powered by local LLMs</em>
+  <h2>🔍 Watchpath Log-Analyst</h2>
+  <em>LLM-powered log parser with anomaly flags — an <b>ABI Research</b> project</em>
 </p>
 
 ---
 
-## 🎯 Doel
+## 🚀 Overzicht
 
-**Watchpath Log-Analyst (OSS)** combineert traditionele loganalyse met LLM-gestuurde interpretatie.  
-Het project parseert ruwe logs (zoals `nginx` of `auth`), structureert data per sessie/IP,  
-detecteert anomalieën via eenvoudige regels & statistiek, en laat een **lokale LLM** (Ollama + Mistral)  
-automatisch korte *“analyst notes”* genereren per verdachte sessie.
+**Watchpath Log-Analyst** is een open-source Python-tool voor automatische loganalyse met lokale AI-ondersteuning.  
+De applicatie parseert ruwe logs (zoals `nginx` of `auth`), groepeert data per sessie/IP,  
+detecteert afwijkingen via regels en statistiek, en laat een **lokale LLM** (via [Ollama](https://ollama.com))  
+een korte _“analyst note”_ schrijven voor verdachte gebeurtenissen.
+
+> _Een combinatie van klassieke analyse, moderne AI-context en volledige privacy._
 
 ---
 
-## 🌐 Kernwaarden — De 3 C’s van Watchpath
+## 🧭 Kernprincipes
 
-| C | Kernvraag | Betekenis voor Watchpath |
+- 🔐 **Privacy First** — 100% lokaal, geen cloud-LLM of data-exfiltratie.  
+- ⚙️ **Explainable AI** — Uitlegbaar, toetsbaar en herleidbaar.  
+- 🧠 **Efficiënt en schaalbaar** — Snelle setup, uitbreidbaar naar meerdere logtypes.  
+- 🤝 **Ontwikkeld door ABI Research** —  
+  _Ilyes Lallam (Lead) · Asil · Bilal._
+
+---
+
+## 🧩 Stack
+
+| Domein | Technologie | Functie |
 |:--|:--|:--|
-| **Context** | “Wat willen we echt zien?” | Combineert logstructuur en netwerk-gedrag om AI-context te behouden. |
-| **Constraints** | “Wat mag of kan niet?” | Draait volledig lokaal (geen cloud-LLM’s, geen data-lekkage). |
-| **Criteria** | “Wanneer is iets afwijkend?” | Statistische grenzen + heuristieken maken anomalieën toetsbaar. |
-
----
-
-## 🧠 Waarom dit project?
-
-- 🔐 **Privacy-vriendelijk:** LLM draait **lokaal** via [Ollama](https://ollama.com)  
-- 🧩 **Transparant:** elke beslissing is uitlegbaar — geen black-box AI  
-- 🧮 **Meetbaar:** anomaly-score + bronverwijzing + context-fit  
-- ⚙️ **Praktisch:** demobaar binnen 2–3 dagen (CLI + API-output)  
-- 🧑‍🏫 **Onderzoeksgericht:** ideaal voor labs, CTF-trainingen of onderwijs in AI + Security  
-
----
-
-## ⚙️ Stack & Architectuur
-
-| Component | Technologie | Functie |
-|:--|:--|:--|
-| **CLI & API** | Typer + Rich + FastAPI | Interactie & endpoints |
+| **Core** | Python 3.11+, Typer + Rich | CLI-interface |
+| **Backend** | FastAPI | REST-API voor integratie |
 | **AI-laag** | Ollama + Mistral 7B / Llama 3.x | Lokale LLM-analyse |
-| **Analysetools** | NumPy / SciPy / Pandas | Feature-extractie & statistiek |
-| **Outputvormen** | Markdown, JSON | Analyst Notes + Scorecards |
+| **Analyse** | NumPy · SciPy · Pandas | Feature-extractie & statistiek |
+| **Output** | Markdown · JSON | Analyst Notes & Scorecards |
 
 ---
 
-## 🚀 Quickstart
+## ⚙️ Quickstart
 
 ### 1️⃣ Vereisten
+
 ```bash
-# Python en Ollama voorbereiden
 python3 --version  # 3.11+
 ollama serve       # start lokale LLM-service
 ollama pull mistral
-# alternatief: ollama pull llama3.1
+# of: ollama pull llama3.1
 ````
 
 ### 2️⃣ Installatie
@@ -68,27 +61,27 @@ cd watchpath-log-analyst
 pip install -r requirements.txt
 ```
 
-### 3️⃣ Run & Analyse
+### 3️⃣ Gebruik
 
 ```bash
 python -m watchpath parse ./logs/nginx.log --model mistral
 ```
 
-➡️ Output bevat:
+De CLI toont:
 
-* **Anomaly-score per sessie**
-* **LLM-gegenereerde analyst note**
-* **Feature-statistieken** per IP/sessie
+* ⚠️ **Anomalie-score** per sessie
+* 🧠 **LLM-gegenereerde analyst note**
+* 📊 **Feature-statistieken** (sessieduur, IP-distributie, trends)
 
 ---
 
-## 🧾 Voorbeeld-output
+## 📸 Voorbeeld-output
 
 ```text
 [session: 10.0.3.41]
 Anomaly Score: 0.91 ⚠️
 Analyst Note (LLM):
-> Multiple failed auth attempts from a single IP within 3-min window.  
+> Multiple failed auth attempts from a single IP within 3-minute window.  
 > Likely brute-force behavior. Consider temporary block.
 ```
 
@@ -96,29 +89,33 @@ Analyst Note (LLM):
 
 ## 🧭 Roadmap
 
-* [ ] Auto-labeling van anomalieën
-* [ ] Grafana-export & live dashboard
-* [ ] Embedding-based fine-tuning
+* [ ] YAML/JSON-ingest uitbreiden
+* [ ] Grafana-export & dashboards
+* [ ] Fine-tuning via lokale embeddings
+* [ ] Realtime API-stream
 * [ ] Cross-session correlatie
-* [ ] Integratie met open CTI-feeds
 
 ---
 
 ## 🤝 Contributie
 
-Open-source is samenwerking.
-Fork, test, verbeter — en deel je eigen *analyst modules*.
+Pull requests en feature-suggesties zijn welkom!
+Gebruik **feature branches** en voeg testcases toe.
 
 ```bash
 git checkout -b feature/<naam>
 ```
 
+> *Samen bouwen we een uitlegbare AI-tooling-stack voor cybersecurity.*
+
 ---
 
-## 🧩 Licentie
+## 🧠 Licentie
 
-MIT-licentie — vrij gebruik, aanpassing en distributie
-met bronvermelding: *ABI Research / Ilyes Lallam & Asil Elkhaloui.*
+Released onder de **MIT-licentie**.
+Vrij gebruik, wijziging en distributie toegestaan met bronvermelding:
+
+**© ABI Research — Ilyes Lallam (Lead) · Asil · Bilal**
 
 ---
 
@@ -137,14 +134,3 @@ met bronvermelding: *ABI Research / Ilyes Lallam & Asil Elkhaloui.*
     <img src="https://img.shields.io/badge/Made%20with-Python%20🐍-green?logo=python" />
   </a>
 </p>
-```
-
----
-### 💬 Toelichting
-
-Deze versie sluit visueel en inhoudelijk aan op je **ABI Research-presentatie**:
-
-* identieke **kleurgradatie** (`#1e3c72 → #2a5298`);
-* **research-toon** met focus op AI-eigenaarschap en uitlegbaarheid;
-* secties in **slide-stijl** (kort, helder, semantisch);
-* **3 C’s-model** geïntegreerd in de kernfilosofie van het project.
