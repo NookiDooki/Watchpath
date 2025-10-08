@@ -117,7 +117,7 @@ Gebruik het, wijzig het, deel het — zolang de credits behouden blijven.
 
 <p align="center">
   <a href="https://github.com/<jouw-username>">
-    <img src="https://img.shields.io/github/stars/<jouw-username>/watchpath-log-analyst?style=social" />
+    <img src="https://img.shields.io/github/stars/NookiDooki/Watchpath?style=social" />
   </a>
   <a href="https://ollama.com">
     <img src="https://img.shields.io/badge/Ollama-local--LLM-blue?logo=openai" />
