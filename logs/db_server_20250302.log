@@ -1,0 +1,102 @@
+2025-03-02 09:00:01 INFO Connection from 192.168.1.10 by user 'admin' established
+2025-03-02 09:00:05 INFO Query executed: SELECT * FROM users WHERE active=1
+2025-03-02 09:00:10 INFO Connection from 192.168.1.12 by user 'john' established
+2025-03-02 09:00:12 INFO Query executed: INSERT INTO orders (id, amount) VALUES (101, 250)
+2025-03-02 09:00:17 INFO Backup started: database 'production'
+2025-03-02 09:00:25 INFO Connection from 192.168.1.14 by user 'maria' established
+2025-03-02 09:00:27 INFO Query executed: UPDATE products SET stock=stock-1 WHERE id=42
+2025-03-02 09:00:31 INFO Transaction committed successfully
+2025-03-02 09:00:35 INFO Connection from 192.168.1.15 by user 'john' established
+2025-03-02 09:00:37 INFO Query executed: SELECT COUNT(*) FROM logs
+2025-03-02 09:00:40 INFO Scheduled cleanup of old sessions completed
+2025-03-02 09:00:44 INFO Index rebuild completed on table 'orders'
+2025-03-02 09:00:49 WARNING Failed login attempt for user 'root' from 45.66.12.98
+2025-03-02 09:00:52 INFO Connection from 192.168.1.16 by user 'maria' established
+2025-03-02 09:00:55 INFO Query executed: DELETE FROM temp_data WHERE created < '2025-02-01'
+2025-03-02 09:01:00 INFO Backup completed: database 'production' (size: 3.8GB)
+2025-03-02 09:01:04 INFO Connection from 192.168.1.17 by user 'admin' established
+2025-03-02 09:01:07 ERROR Unauthorized attempt to access table 'users' by IP 203.44.11.22
+2025-03-02 09:01:10 INFO Query executed: SELECT id, name FROM customers WHERE status='active'
+2025-03-02 09:01:14 INFO Connection from 192.168.1.18 by user 'guest' established
+2025-03-02 09:01:17 INFO Query executed: INSERT INTO logs (event, user) VALUES ('login', 'guest')
+2025-03-02 09:01:20 INFO Transaction committed successfully
+2025-03-02 09:01:23 INFO Connection from 192.168.1.19 by user 'maria' established
+2025-03-02 09:01:26 INFO Query executed: UPDATE products SET price=19.99 WHERE id=12
+2025-03-02 09:01:29 INFO Connection from 192.168.1.20 by user 'john' established
+2025-03-02 09:01:32 ALERT User 'guest' granted admin privileges unexpectedly
+2025-03-02 09:01:35 INFO Query executed: SELECT * FROM orders WHERE status='pending'
+2025-03-02 09:01:38 INFO Connection from 192.168.1.21 by user 'admin' established
+2025-03-02 09:01:42 INFO Query executed: DELETE FROM sessions WHERE expired=1
+2025-03-02 09:01:45 INFO Transaction committed successfully
+2025-03-02 09:01:48 INFO Backup verification passed (checksum match)
+2025-03-02 09:01:52 INFO Connection from 192.168.1.22 by user 'maria' established
+2025-03-02 09:01:55 INFO Query executed: SELECT SUM(amount) FROM orders WHERE created >= '2025-03-01'
+2025-03-02 09:01:58 INFO Connection from 192.168.1.23 by user 'john' established
+2025-03-02 09:02:01 CRITICAL Suspicious query detected: SELECT password FROM users WHERE username='admin'--
+2025-03-02 09:02:04 INFO Query executed: UPDATE logs SET status='archived' WHERE created < '2025-02-01'
+2025-03-02 09:02:08 INFO Connection from 192.168.1.24 by user 'deploy' established
+2025-03-02 09:02:11 INFO Query executed: INSERT INTO deployments (version, user) VALUES ('v2.1', 'deploy')
+2025-03-02 09:02:15 INFO Transaction committed successfully
+2025-03-02 09:02:18 INFO Scheduled cleanup completed
+2025-03-02 09:02:21 INFO Connection from 192.168.1.25 by user 'admin' established
+2025-03-02 09:02:24 INFO Query executed: SELECT * FROM sessions WHERE active=1
+2025-03-02 09:02:27 WARNING Large data export detected to external IP 91.120.44.22
+2025-03-02 09:02:30 INFO Backup started: database 'analytics'
+2025-03-02 09:02:34 INFO Connection from 192.168.1.26 by user 'maria' established
+2025-03-02 09:02:37 INFO Query executed: INSERT INTO logs (event, user) VALUES ('report generated', 'maria')
+2025-03-02 09:02:41 INFO Transaction committed successfully
+2025-03-02 09:02:44 ERROR Failed login attempt for user 'root' from 45.66.12.98
+2025-03-02 09:02:48 INFO Connection from 192.168.1.27 by user 'guest' established
+2025-03-02 09:02:51 INFO Query executed: SELECT * FROM products WHERE stock>0
+2025-03-02 09:02:54 INFO Transaction committed successfully
+2025-03-02 09:02:57 INFO Backup completed: database 'analytics' (size: 2.1GB)
+2025-03-02 09:03:01 INFO Connection from 192.168.1.28 by user 'john' established
+2025-03-02 09:03:04 ALERT Suspicious schema modification detected on table 'users'
+2025-03-02 09:03:07 INFO Query executed: SELECT COUNT(*) FROM orders WHERE status='shipped'
+2025-03-02 09:03:10 INFO Connection from 192.168.1.29 by user 'maria' established
+2025-03-02 09:03:13 INFO Query executed: UPDATE reports SET status='finalized' WHERE id=42
+2025-03-02 09:03:17 INFO Transaction committed successfully
+2025-03-02 09:03:20 INFO Connection from 192.168.1.30 by user 'admin' established
+2025-03-02 09:03:23 INFO Query executed: DELETE FROM temp_sessions WHERE expired=1
+2025-03-02 09:03:26 INFO Connection from 192.168.1.31 by user 'guest' established
+2025-03-02 09:03:29 INFO Query executed: SELECT * FROM users WHERE active=1
+2025-03-02 09:03:32 ERROR Unauthorized attempt to drop table 'users' by IP 203.44.11.22
+2025-03-02 09:03:36 INFO Connection from 192.168.1.32 by user 'deploy' established
+2025-03-02 09:03:39 INFO Query executed: INSERT INTO deployments (version, user) VALUES ('v2.2', 'deploy')
+2025-03-02 09:03:43 INFO Transaction committed successfully
+2025-03-02 09:03:46 INFO Backup verification passed (checksum match)
+2025-03-02 09:03:50 INFO Connection from 192.168.1.33 by user 'john' established
+2025-03-02 09:03:53 INFO Query executed: SELECT * FROM orders WHERE amount>100
+2025-03-02 09:03:56 WARNING Multiple failed login attempts detected for user 'root'
+2025-03-02 09:04:00 INFO Connection from 192.168.1.34 by user 'maria' established
+2025-03-02 09:04:03 INFO Query executed: UPDATE invoices SET status='paid' WHERE id=101
+2025-03-02 09:04:06 INFO Transaction committed successfully
+2025-03-02 09:04:10 INFO Backup started: database 'reporting'
+2025-03-02 09:04:13 INFO Connection from 192.168.1.35 by user 'john' established
+2025-03-02 09:04:16 INFO Query executed: SELECT * FROM sessions WHERE active=1
+2025-03-02 09:04:19 INFO Transaction committed successfully
+2025-03-02 09:04:23 INFO Backup completed: database 'reporting' (size: 1.9GB)
+2025-03-02 09:04:26 INFO Connection from 192.168.1.36 by user 'deploy' established
+2025-03-02 09:04:29 INFO Query executed: INSERT INTO deployments (version, user) VALUES ('v2.3', 'deploy')
+2025-03-02 09:04:33 INFO Transaction committed successfully
+2025-03-02 09:04:36 INFO Scheduled cleanup completed
+2025-03-02 09:04:40 ALERT SQL injection attempt detected from IP 185.23.14.55: "SELECT * FROM users WHERE username='admin'--"
+2025-03-02 09:04:44 INFO Connection from 192.168.1.37 by user 'guest' established
+2025-03-02 09:04:47 INFO Query executed: SELECT * FROM products WHERE stock>0
+2025-03-02 09:04:50 INFO Transaction committed successfully
+2025-03-02 09:04:53 INFO Connection from 192.168.1.38 by user 'admin' established
+2025-03-02 09:04:56 INFO Query executed: UPDATE orders SET status='shipped' WHERE id=101
+2025-03-02 09:05:00 INFO Transaction committed successfully
+2025-03-02 09:05:03 INFO Backup verification passed
+2025-03-02 09:05:06 INFO Connection from 192.168.1.39 by user 'maria' established
+2025-03-02 09:05:09 INFO Query executed: SELECT COUNT(*) FROM logs
+2025-03-02 09:05:12 INFO Transaction committed successfully
+2025-03-02 09:05:16 WARNING Suspicious query detected: DROP TABLE users
+2025-03-02 09:05:20 INFO Connection from 192.168.1.40 by user 'john' established
+2025-03-02 09:05:23 INFO Query executed: INSERT INTO reports (id, name) VALUES (101, 'Monthly Report')
+2025-03-02 09:05:26 INFO Transaction committed successfully
+2025-03-02 09:05:30 INFO Backup started: database 'production'
+2025-03-02 09:05:33 INFO Connection from 192.168.1.41 by user 'admin' established
+2025-03-02 09:05:36 INFO Query executed: SELECT * FROM users WHERE active=1
+2025-03-02 09:05:39 INFO Transaction committed successfully
+``
