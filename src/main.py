@@ -4,7 +4,7 @@ from ai import analyze_logs_ollama_chunk, chunk_log_file
 
 # --- Paths ---
 log_file = "logs/apache_access_20250302.log"
-prompt_file = "prompts/test_prompt.txt"
+prompt_file = "prompts/test2_prompt.txt"
 
 # --- Generate dynamic report name ---
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
