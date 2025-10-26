@@ -18,12 +18,21 @@ report_file.parent.mkdir(exist_ok=True)
 # --- Process log in chunks ---
 report_content = []
 
-for chunk in chunk_log_file(log_file, chunk_size=50):
+chunks = list(chunk_log_file(log_file, chunk_size=50))
+total_chunks = len(chunks)
+
+if total_chunks == 0:
+    print("No log data found to analyze.")
+
+for index, chunk in enumerate(chunks, start=1):
+    print(f"Processing chunk {index}/{total_chunks}...")
     try:
         analysis = analyze_logs_ollama_chunk(chunk, prompt_file)
         report_content.append(analysis)
+        print(f"Completed chunk {index}/{total_chunks}.")
     except Exception as e:
         report_content.append(f"[ERROR] Failed to process chunk: {e}")
+        print(f"Chunk {index}/{total_chunks} failed: {e}")
 
 # --- Save report ---
 report_file.write_text("\n".join(report_content))
