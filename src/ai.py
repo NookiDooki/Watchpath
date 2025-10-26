@@ -1,13 +1,34 @@
 from pathlib import Path
 import subprocess
+from typing import Optional
 
-def analyze_logs_ollama_chunk(log_chunk: str, prompt_path: str, model="mistral:7b-instruct"):
+
+def analyze_logs_ollama_chunk(
+    log_chunk: str,
+    prompt_path: str,
+    model: str = "mistral:7b-instruct",
+    chart_context: Optional[str] = None,
+    summary_context: Optional[str] = None,
+):
     """
     Analyze a chunk of logs directly using a local Ollama model.
     Returns the AI output (line-by-line classification).
     """
     base_prompt = Path(prompt_path).read_text()
-    full_prompt = f"{base_prompt}\n\n### TASK ###\nAnalyze the following logs:\n{log_chunk}\n"
+
+    context_sections = []
+    if summary_context:
+        context_sections.append("### ANALYTICS SNAPSHOT ###\n" + summary_context.strip())
+    if chart_context:
+        context_sections.append("### CHART INVENTORY ###\n" + chart_context.strip())
+
+    context_block = "\n\n".join(context_sections)
+    if context_block:
+        context_block += "\n\n"
+
+    full_prompt = (
+        f"{base_prompt}\n\n{context_block}### TASK ###\nAnalyze the following logs:\n{log_chunk}\n"
+    )
 
     result = subprocess.run(
         ["ollama", "run", model],
