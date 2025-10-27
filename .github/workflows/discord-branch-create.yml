@@ -21,14 +21,14 @@ jobs:
             '{
               embeds: [{
                 title: "New branch created",
-                description: "**\($repo)**\n`" + $branch + "`",
+                description: ("**\($repo)**\n`\($branch)`"),
                 url: $url,
                 fields: [
-                  {"name":"Author","value":$actor,"inline":true},
-                  {"name":"Link","value":$url,"inline":false}
+                  {name: "Author", value: $actor, inline: true},
+                  {name: "Link", value: $url, inline: false}
                 ],
                 timestamp: (now | todate),
-                footer: {"text":"GitHub → Discord"}
+                footer: {text: "GitHub → Discord"}
               }]
             }' \
           | curl -sSf -H "Content-Type: application/json" -d @- "$WEBHOOK_URL"
