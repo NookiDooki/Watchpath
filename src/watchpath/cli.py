@@ -70,6 +70,33 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parse_parser.set_defaults(func=_handle_parse_command)
 
+    gui_parser = subparsers.add_parser(
+        "gui",
+        help="Launch the kawaii Watchpath desktop experience.",
+    )
+    gui_parser.add_argument(
+        "log_path",
+        nargs="?",
+        help="Optional log file to preload when the GUI opens.",
+    )
+    gui_parser.add_argument(
+        "--model",
+        default="mistral:7b-instruct",
+        help="Default Ollama model used for anomaly detection.",
+    )
+    gui_parser.add_argument(
+        "--chunk-size",
+        type=int,
+        default=50,
+        help="Number of log lines sent to the model per session.",
+    )
+    gui_parser.add_argument(
+        "--prompt",
+        default=str(DEFAULT_PROMPT_PATH),
+        help="Prompt template passed to the language model.",
+    )
+    gui_parser.set_defaults(func=_handle_gui_command)
+
     return parser
 
 
@@ -154,6 +181,21 @@ def _handle_parse_command(args: argparse.Namespace) -> int:
     else:
         print("\n\n".join(rendered_reports))
     return 0
+
+
+def _handle_gui_command(args: argparse.Namespace) -> int:
+    from .gui import launch_gui
+
+    prompt_path = Path(args.prompt)
+    if not prompt_path.exists():
+        raise FileNotFoundError(f"Prompt template not found: {prompt_path}")
+
+    return launch_gui(
+        args.log_path,
+        model=args.model,
+        chunk_size=args.chunk_size,
+        prompt_path=str(prompt_path),
+    )
 
 
 def _prompt_to_continue() -> bool:
