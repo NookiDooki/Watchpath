@@ -85,3 +85,31 @@ def test_cli_parse_outputs_json(monkeypatch, capsys, tmp_log, prompt_file):
     assert isinstance(payload, list)
     assert payload[0]["anomaly_score"] == 0.5
     assert "global_stats" in payload[0]
+
+
+def test_cli_parse_confirm_each_session(monkeypatch, capsys, tmp_log, prompt_file):
+    def fake_analyze(session_id, log_chunk, prompt_path, model):
+        return SessionAnalysis(
+            session_id=session_id,
+            anomaly_score=0.2,
+            analyst_note="Routine activity",
+            evidence=log_chunk,
+            raw_response="{}",
+        )
+
+    monkeypatch.setattr(cli, "analyze_logs_ollama_chunk", fake_analyze)
+    monkeypatch.setattr("builtins.input", lambda: "n")
+
+    exit_code = cli.main(
+        [
+            "parse",
+            str(tmp_log),
+            "--prompt",
+            str(prompt_file),
+            "--confirm-each-session",
+        ]
+    )
+
+    assert exit_code == 0
+    captured = capsys.readouterr()
+    assert "Analysis stopped early" in captured.err
