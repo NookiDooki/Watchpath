@@ -81,6 +81,7 @@ class AnalysisWorker(QObject):
         self.chunk_size = max(1, chunk_size)
         self.model = model
         self.prompt_path = prompt_path
+        self._should_stop = False
 
     def run(self) -> None:  # pragma: no cover - requires Qt event loop
         try:
@@ -100,6 +101,8 @@ class AnalysisWorker(QObject):
 
             total = len(sessions)
             for index, session in enumerate(sessions, start=1):
+                if self._should_stop:
+                    break
                 self.progress.emit(index, total)
                 self.status.emit(
                     f"🍡 Whispering with session {session.session_id} ({index}/{total})..."
@@ -108,11 +111,17 @@ class AnalysisWorker(QObject):
                 processed = self._process_session(session, stats)
                 self.session_ready.emit(processed)
 
-            self.status.emit("🎉 All sessions have been pampered!")
+            if self._should_stop:
+                self.status.emit("⏹️ Session analysis stopped. Showing collected results so far.")
+            else:
+                self.status.emit("🎉 All sessions have been pampered!")
         except Exception as exc:  # pragma: no cover - UI feedback path
             self.error.emit(str(exc))
         finally:
             self.finished.emit()
+
+    def request_stop(self) -> None:
+        self._should_stop = True
 
     def _build_global_payload(self, stats: SessionStatistics) -> dict:
         top_ips = sorted(
@@ -208,7 +217,7 @@ class GlobalStatsWidget(QFrame):
         layout.setContentsMargins(16, 16, 16, 16)
         layout.setSpacing(10)
 
-        self.title_label = QLabel("Global Cozy Vibes")
+        self.title_label = QLabel("📊 General statistics")
         title_font = QFont()
         title_font.setPointSize(18)
         title_font.setBold(True)
@@ -339,6 +348,11 @@ class SessionDetailWidget(QWidget):
         self.score_bar.setObjectName("ScoreBar")
         self.score_bar.setAlignment(Qt.AlignCenter)
         self.score_bar.setFixedHeight(28)
+        self._default_score_style = ""
+        self._safe_score_style = (
+            "QProgressBar { color: #34d399; }\n"
+            "QProgressBar::chunk { background: #14532d; }"
+        )
         header.addWidget(self.score_bar, 0)
 
         self.mascot = MascotWidget()
@@ -388,6 +402,8 @@ class SessionDetailWidget(QWidget):
         self._current_session = None
         self.session_label.setText("Pick a session to see its story ✨")
         self.score_bar.setValue(0)
+        self.score_bar.setFormat("Mochi meter: %p%")
+        self.score_bar.setStyleSheet(self._default_score_style)
         self.duration_label.setText("—")
         self.request_label.setText("—")
         self.unique_label.setText("—")
@@ -408,11 +424,12 @@ class SessionDetailWidget(QWidget):
         score = payload.get("anomaly_score")
         if isinstance(score, (int, float)) and math.isfinite(score):
             self.score_bar.setValue(int(score * 100))
+            self.score_bar.setFormat(f"Mochi meter: {score:.2f}")
+            self.score_bar.setStyleSheet(self._default_score_style)
         else:
             self.score_bar.setValue(0)
-        self.score_bar.setFormat(
-            f"Mochi meter: {score:.2f}" if isinstance(score, (int, float)) else "Mochi meter: N/A"
-        )
+            self.score_bar.setFormat("Mochi meter: 0.00 (Safe)")
+            self.score_bar.setStyleSheet(self._safe_score_style)
         self.mascot.update_mood(score if isinstance(score, (int, float)) else None)
 
         stats = payload["session_stats"]
@@ -511,6 +528,11 @@ class KawaiiMainWindow(QMainWindow):
         open_action.triggered.connect(self._choose_log_file)
         toolbar.addAction(open_action)
 
+        self.stop_button = QPushButton("Stop ⏹")
+        self.stop_button.setEnabled(False)
+        self.stop_button.clicked.connect(self._request_stop_analysis)
+        toolbar.addWidget(self.stop_button)
+
         self.model_combo = QComboBox()
         self.model_combo.addItems(
             [
@@ -539,10 +561,10 @@ class KawaiiMainWindow(QMainWindow):
         self.vibe_slider.setRange(0, 100)
         self.vibe_slider.setValue(50)
         self.vibe_slider.setToolTip(
-            "Filter sessions by anomaly vibe. Slide right to focus on spicier findings."
+            "Set the minimum anomaly score to display. Slide right to focus on higher-risk sessions."
         )
         self.vibe_slider.valueChanged.connect(self._apply_vibe_filter)
-        toolbar.addWidget(QLabel("Vibe filter"))
+        toolbar.addWidget(QLabel("Anomaly threshold"))
         toolbar.addWidget(self.vibe_slider)
 
     def _build_status_bar(self) -> None:
@@ -664,7 +686,7 @@ class KawaiiMainWindow(QMainWindow):
             should_show = not isinstance(score, (int, float)) or score >= threshold
             item.setHidden(not should_show)
         self.statusBar().showMessage(
-            f"Filtering for vibes ≥ {threshold:.2f}", 3000
+            f"Filtering for anomaly scores ≥ {threshold:.2f}", 3000
         )
 
     def load_log_file(self, path: Path) -> None:
@@ -700,6 +722,8 @@ class KawaiiMainWindow(QMainWindow):
         )
         self._worker.moveToThread(self._thread)
 
+        self.stop_button.setEnabled(True)
+
         self._thread.started.connect(self._worker.run)
         self._worker.finished.connect(self._thread.quit)
         self._worker.finished.connect(self._worker.deleteLater)
@@ -716,6 +740,8 @@ class KawaiiMainWindow(QMainWindow):
     def _cleanup_thread(self) -> None:
         self.progress_bar.setVisible(False)
         self.progress_bar.setValue(0)
+        self.progress_bar.setFormat("%p%")
+        self.stop_button.setEnabled(False)
         self._thread = None
         self._worker = None
 
@@ -738,6 +764,14 @@ class KawaiiMainWindow(QMainWindow):
     def _handle_session_ready(self, processed: ProcessedSession) -> None:
         self._processed_sessions.append(processed)
         self.session_list.add_session(processed)
+
+    def _request_stop_analysis(self) -> None:
+        if not self._worker:
+            return
+        self.stop_button.setEnabled(False)
+        self._worker.request_stop()
+        self.progress_bar.setFormat("Stopping analysis…")
+        self.statusBar().showMessage("Stopping analysis after current session…", 5000)
 
     def _handle_session_selected(self) -> None:
         item = self.session_list.currentItem()
