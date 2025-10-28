@@ -692,13 +692,13 @@ class SessionDetailWidget(QWidget):
                         "QProgressBar { "
                         f"border: 1px solid {border}; "
                         "border-radius: 14px; text-align: center; "
-                        f"background: {background}; color: {text_color}; padding: 0 20px; }"
+                        f"background: {background}; color: {text_color}; padding: 0 20px; }}"
                     ),
                     (
                         "QProgressBar::chunk { "
                         "border-radius: 12px; "
                         "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, "
-                        f"stop:0 {chunk_start}, stop:1 {chunk_end}); }"
+                        f"stop:0 {chunk_start}, stop:1 {chunk_end}); }}"
                     ),
                 ]
             )
