@@ -104,32 +104,37 @@ QListWidget#SessionCarousel QScrollBar::handle:vertical:hover { background: #5b8
 """
 
 LIGHT_STYLESHEET = """
-QMainWindow { background: #f5f7fb; color: #1f2933; }
-QStatusBar { background: #ffffff; color: #475569; border-top: 1px solid #d8def3; }
-QToolBar#MochiToolbar { background: #ffffff; border: 0; padding: 6px; spacing: 12px; }
-#MochiToolbar QLabel { padding: 0 6px; font-weight: 600; color: #6b7cc9; }
-QPushButton, QComboBox, QSpinBox { background: #ffffff; border: 1px solid #d0d7ee; color: #1f2933; border-radius: 8px; padding: 6px 10px; }
-QPushButton:hover, QComboBox:hover, QSpinBox:hover { border-color: #4c6ef5; }
-QPushButton:pressed { background: #e9edfb; }
-QComboBox QAbstractItemView { background: #ffffff; color: #1f2933; selection-background-color: #e1e7fb; }
-QSlider::groove:horizontal { background: #d0d7ee; height: 6px; border-radius: 3px; }
-QSlider::handle:horizontal { background: #4c6ef5; width: 18px; margin: -6px 0; border-radius: 9px; }
-QSlider::sub-page:horizontal { background: #4c6ef5; }
-#GlobalStats { background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #ffffff, stop:1 #e8ecfb); border-radius: 18px; border: 1px solid #d0d7ee; }
-#GlobalStatLabel, #GlobalStats QLabel { color: #475569; }
-#SessionCarousel { background: #ffffff; border-radius: 16px; padding: 12px; }
-#SessionCarousel::item { background: #f1f4ff; border-radius: 18px; padding: 14px; margin: 6px; color: #1f2933; border: 1px solid #d0d7ee; }
-#SessionCarousel::item:selected { background: #dde4ff; border: 1px solid #4c6ef5; }
-#SessionStatsCard { background: #ffffff; border-radius: 20px; padding: 18px; border: 1px solid #d0d7ee; }
-#AnalystNote { background: #ffffff; border-radius: 20px; padding: 18px; border: 1px dashed #c3cefa; color: #475569; }
+QMainWindow { background: #fdf9ff; color: #2d334a; }
+QStatusBar { background: #fffaff; color: #4c5569; border-top: 1px solid #e5dcff; }
+QToolBar#MochiToolbar { background: #fffaff; border: 0; padding: 6px; spacing: 12px; }
+#MochiToolbar QLabel { padding: 0 6px; font-weight: 600; color: #7b6fc4; }
+QPushButton, QComboBox, QSpinBox { background: #ffffff; border: 1px solid #dcd1ff; color: #2d334a; border-radius: 8px; padding:
+6px 10px; }
+QPushButton:hover, QComboBox:hover, QSpinBox:hover { border-color: #9db7ff; }
+QPushButton:pressed { background: #f2ecff; }
+QComboBox QAbstractItemView { background: #ffffff; color: #2d334a; selection-background-color: #e6edff; }
+QSlider::groove:horizontal { background: #dcd1ff; height: 6px; border-radius: 3px; }
+QSlider::handle:horizontal { background: #9db7ff; width: 18px; margin: -6px 0; border-radius: 9px; }
+QSlider::sub-page:horizontal { background: #9db7ff; }
+#GlobalStats { background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #ffffff, stop:1 #f1edff); border-radius: 18px; border:
+ 1px solid #e1d8fb; }
+#GlobalStatLabel, #GlobalStats QLabel { color: #4c5569; }
+#SessionCarousel { background: #fffaff; border-radius: 16px; padding: 12px; }
+#SessionCarousel::item { background: #f6f1ff; border-radius: 18px; padding: 14px; margin: 6px; color: #2d334a; border: 1px solid
+ #e1d8fb; }
+#SessionCarousel::item:selected { background: #e2d8ff; border: 1px solid #9db7ff; }
+#SessionStatsCard { background: #ffffff; border-radius: 20px; padding: 18px; border: 1px solid #e1d8fb; }
+#AnalystNote { background: #ffffff; border-radius: 20px; padding: 18px; border: 1px dashed #d5c8fb; color: #4c5569; }
 #SessionTabs::pane { border: 0; }
 #SessionTabs::tab-bar { left: 12px; }
-#SessionTabs::tab { background: #e7ebfb; border-radius: 16px; padding: 8px 16px; margin-right: 8px; color: #475569; border: 1px solid transparent; }
-#SessionTabs::tab:selected { background: #4c6ef5; color: #f8fafc; border-color: #4c6ef5; }
-QTextBrowser#EvidenceView, QTextBrowser#LogsView, QTextBrowser#MarkdownView { background: #ffffff; border-radius: 16px; padding: 12px; border: 1px solid #d0d7ee; color: #1f2933; }
-QListWidget#SessionCarousel QScrollBar:vertical { background: #ffffff; width: 10px; }
-QListWidget#SessionCarousel QScrollBar::handle:vertical { background: #c3cefa; border-radius: 5px; }
-QListWidget#SessionCarousel QScrollBar::handle:vertical:hover { background: #4c6ef5; }
+#SessionTabs::tab { background: #f0eaff; border-radius: 16px; padding: 8px 16px; margin-right: 8px; color: #4c5569; border: 1px
+solid transparent; }
+#SessionTabs::tab:selected { background: #9db7ff; color: #1f2a44; border-color: #9db7ff; }
+QTextBrowser#EvidenceView, QTextBrowser#LogsView, QTextBrowser#MarkdownView { background: #ffffff; border-radius: 16px; padding:
+ 12px; border: 1px solid #e1d8fb; color: #2d334a; }
+QListWidget#SessionCarousel QScrollBar:vertical { background: #fffaff; width: 10px; }
+QListWidget#SessionCarousel QScrollBar::handle:vertical { background: #d5c8fb; border-radius: 5px; }
+QListWidget#SessionCarousel QScrollBar::handle:vertical:hover { background: #9db7ff; }
 """
 
 THEME_CONFIGS = {
@@ -176,7 +181,7 @@ THEME_CONFIGS = {
                     mascot="#fb923c",
                 ),
                 "high": RiskVisual(
-                    text="#f87171",
+                    text="#ffffff",
                     chunk_start="#dc2626",
                     chunk_end="#f87171",
                     mascot="#f87171",
@@ -186,51 +191,55 @@ THEME_CONFIGS = {
     },
     "light": {
         "palette": {
-            QPalette.Window: "#f5f7fb",
-            QPalette.WindowText: "#1f2933",
+            QPalette.Window: "#fdf9ff",
+            QPalette.WindowText: "#2d334a",
             QPalette.Base: "#ffffff",
-            QPalette.AlternateBase: "#eef1fb",
-            QPalette.Text: "#1f2933",
+            QPalette.AlternateBase: "#f4efff",
+            QPalette.Text: "#2d334a",
             QPalette.Button: "#ffffff",
-            QPalette.ButtonText: "#1f2933",
-            QPalette.Highlight: "#4c6ef5",
-            QPalette.HighlightedText: "#f8fafc",
+            QPalette.ButtonText: "#2d334a",
+            QPalette.Highlight: "#9db7ff",
+            QPalette.HighlightedText: "#1f2933",
             QPalette.ToolTipBase: "#ffffff",
-            QPalette.ToolTipText: "#1f2933",
-            QPalette.BrightText: "#f97316",
+            QPalette.ToolTipText: "#2d334a",
+            QPalette.BrightText: "#f472b6",
         },
         "stylesheet": LIGHT_STYLESHEET,
         "score_theme": ScoreTheme(
-            background="#ffffff",
-            border="#d0d7ee",
-            text="#1f2933",
-            chunk_start="#4c6ef5",
-            chunk_end="#70a1ff",
-            mascot="#4c6ef5",
+            background="#fff7fb",
+            border="#e1d8fb",
+            text="#2d334a",
+            chunk_start="#9db7ff",
+            chunk_end="#c7d7ff",
+            mascot="#7a7cff",
             risks={
                 "safe": RiskVisual(
-                    text="#047857",
-                    chunk_start="#6ee7b7",
-                    chunk_end="#22c55e",
-                    mascot="#047857",
+                    text="#0f5132",
+                    chunk_start="#bff6d3",
+                    chunk_end="#34d399",
+                    mascot="#0f5132",
+                    background="#f5fff8",
                 ),
                 "low": RiskVisual(
-                    text="#b45309",
-                    chunk_start="#fde68a",
+                    text="#875111",
+                    chunk_start="#fdecc8",
                     chunk_end="#facc15",
-                    mascot="#b45309",
+                    mascot="#a16207",
+                    background="#fffaf0",
                 ),
                 "medium": RiskVisual(
-                    text="#c2410c",
-                    chunk_start="#fed7aa",
+                    text="#9a3412",
+                    chunk_start="#fcd9b6",
                     chunk_end="#fb923c",
                     mascot="#c2410c",
+                    background="#fff7ed",
                 ),
                 "high": RiskVisual(
-                    text="#b91c1c",
-                    chunk_start="#fecaca",
+                    text="#ffffff",
+                    chunk_start="#f9a8a8",
                     chunk_end="#f87171",
-                    mascot="#b91c1c",
+                    mascot="#dc2626",
+                    background="#fff5f5",
                 ),
             },
         ),
@@ -653,7 +662,11 @@ class SessionDetailWidget(QWidget):
 
     def _update_score_display(self, score: Optional[float]) -> None:
         if isinstance(score, (int, float)) and math.isfinite(score):
-            percent = max(0.0, min(score * 100.0, 100.0))
+            numeric = float(score)
+            if numeric > 1.0:
+                percent = max(0.0, min(numeric, 100.0))
+            else:
+                percent = max(0.0, min(numeric * 100.0, 100.0))
             label, risk_key = self._classify_risk(percent)
             self.score_bar.setValue(int(round(percent)))
             self.score_bar.setFormat(f"Mochi meter: {percent:.2f}% ({label})")
@@ -692,7 +705,7 @@ class SessionDetailWidget(QWidget):
                         "QProgressBar { "
                         f"border: 1px solid {border}; "
                         "border-radius: 14px; text-align: center; "
-                        f"background: {background}; color: {text_color}; padding: 0 20px; }}"
+                        f"background: {background}; color: {text_color}; padding: 0 12px; }}"
                     ),
                     (
                         "QProgressBar::chunk { "
