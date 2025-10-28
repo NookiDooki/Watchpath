@@ -62,6 +62,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Render text output using Rich panels.",
     )
+    parse_parser.add_argument(
+        "--confirm-each-session",
+        action="store_true",
+        help="Prompt after each session to decide whether to continue processing.",
+    )
     parse_parser.set_defaults(func=_handle_parse_command)
 
     return parser
@@ -99,6 +104,8 @@ def _handle_parse_command(args: argparse.Namespace) -> int:
     rendered_reports: list[str] = []
     json_reports: list[dict] = []
     rich_payloads: list[dict] = []
+    stopped_early = False
+
     for index, session in enumerate(sessions, start=1):
         print(
             f"[{index}/{total_sessions}] Analyzing session {session.session_id}...",
@@ -124,8 +131,16 @@ def _handle_parse_command(args: argparse.Namespace) -> int:
             else:
                 rendered_reports.append(format_session_report(session, analysis, stats))
 
+        if getattr(args, "confirm_each_session", False):
+            if not _prompt_to_continue():
+                stopped_early = True
+                break
+
     if sessions:
-        print("Analysis complete.", file=sys.stderr, flush=True)
+        message = "Analysis complete."
+        if stopped_early:
+            message = "Analysis stopped early at user request."
+        print(message, file=sys.stderr, flush=True)
 
     if args.output_format == "json":
         print(json.dumps(json_reports, indent=2))
@@ -136,6 +151,23 @@ def _handle_parse_command(args: argparse.Namespace) -> int:
     else:
         print("\n\n".join(rendered_reports))
     return 0
+
+
+def _prompt_to_continue() -> bool:
+    """Prompt the user to continue processing additional sessions."""
+
+    sys.stderr.write("Continue to next session? [Y/n]: ")
+    sys.stderr.flush()
+
+    try:
+        response = input().strip().lower()
+    except EOFError:
+        return False
+
+    if not response:
+        return True
+
+    return response in {"y", "yes"}
 
 
 def _print_rich_reports(payloads: list[dict]) -> None:
