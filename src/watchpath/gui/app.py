@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QProgressBar,
     QPushButton,
+    QSizePolicy,
     QSlider,
     QSpinBox,
     QSplitter,
@@ -348,6 +349,8 @@ class SessionDetailWidget(QWidget):
         self.score_bar.setObjectName("ScoreBar")
         self.score_bar.setAlignment(Qt.AlignCenter)
         self.score_bar.setFixedHeight(28)
+        self.score_bar.setMinimumContentsLength(16)
+        self.score_bar.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         self._default_score_style = ""
         self._safe_score_style = (
             "QProgressBar { color: #34d399; }\n"
@@ -637,7 +640,7 @@ class KawaiiMainWindow(QMainWindow):
             #SessionCarousel::item { background: #232d45; border-radius: 18px; padding: 14px; margin: 6px; color: #edf1ff; border: 1px solid #2f3b58; }
             #SessionCarousel::item:selected { background: #2f3b58; border: 1px solid #5b8def; }
             #SessionStatsCard { background: #1b2235; border-radius: 20px; padding: 18px; border: 1px solid #2f3b58; }
-            #ScoreBar { border: 1px solid #2f3b58; border-radius: 14px; text-align: center; background: #151c2d; color: #edf1ff; }
+            #ScoreBar { border: 1px solid #2f3b58; border-radius: 14px; text-align: center; background: #151c2d; color: #edf1ff; padding: 0 16px; }
             #ScoreBar::chunk { background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #5b8def, stop:1 #70c1ff); border-radius: 12px; }
             #AnalystNote { background: #151c2d; border-radius: 20px; padding: 18px; border: 1px dashed #2f3b58; color: #c0cae5; }
             #SessionTabs::pane { border: 0; }
