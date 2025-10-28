@@ -8,7 +8,7 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, Sequence
 
 from .ai import SessionAnalysis
 
@@ -219,6 +219,25 @@ def _format_duration(seconds: float) -> str:
     return str(timedelta(seconds=int(round(seconds))))
 
 
+def _normalise_evidence(evidence: object) -> list[str]:
+    """Return a flat list of evidence strings from ``evidence``."""
+
+    if evidence is None:
+        return []
+
+    if isinstance(evidence, str):
+        text = evidence.strip()
+        return [text] if text else []
+
+    if isinstance(evidence, Sequence) and not isinstance(evidence, (bytes, bytearray, str)):
+        collected: list[str] = []
+        for item in evidence:
+            collected.extend(_normalise_evidence(item))
+        return collected
+
+    return [str(evidence)]
+
+
 def _render_text_from_payload(payload: Dict[str, object]) -> str:
     session_stats = payload["session_stats"]
     global_stats = payload["global_stats"]
@@ -252,10 +271,14 @@ def _render_text_from_payload(payload: Dict[str, object]) -> str:
         f"  • Request Distribution: {request_summary}",
     ]
 
-    evidence = payload.get("evidence")
+    evidence_items = _normalise_evidence(payload.get("evidence"))
     raw_joined = "\n".join(payload["raw_logs"])
-    if evidence and evidence != raw_joined:
-        lines.append("  • Evidence: " + evidence)
+    if evidence_items and not (len(evidence_items) == 1 and evidence_items[0] == raw_joined):
+        if len(evidence_items) == 1:
+            lines.append("  • Evidence: " + evidence_items[0])
+        else:
+            lines.append("  • Evidence:")
+            lines.extend("    - " + item for item in evidence_items)
 
     return "\n".join(lines)
 
@@ -304,9 +327,12 @@ def _render_markdown_from_payload(payload: Dict[str, object]) -> str:
         *request_lines,
     ]
 
-    evidence = payload.get("evidence")
-    if evidence:
-        markdown.extend(["- **Evidence**:", f"    > {evidence}"])
+    evidence_items = _normalise_evidence(payload.get("evidence"))
+    if evidence_items:
+        markdown.append("- **Evidence**:")
+        for item in evidence_items:
+            formatted = item.replace("\n", "\n    > ")
+            markdown.append(f"    > {formatted}")
 
     return "\n".join(markdown)
 
