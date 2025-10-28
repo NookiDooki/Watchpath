@@ -33,7 +33,7 @@ jobs:
               '{
                 username: "Watchpath Bot",
                 embeds: [{
-                  title: "🌱 New Branch Sprouted!",
+                  title: "🌱 Nieuwe Branch is Gespawned!",
                   description: ("**Repository**\\n`\($repo)`\\n\\n**Branch**\\n`\($branch)`"),
                   url: $url,
                   color: 5814783,
@@ -50,7 +50,7 @@ jobs:
               '{
                 username: "Watchpath Bot",
                 embeds: [{
-                  title: "🚀 Main just received an update!",
+                  title: "🚀 Main branch is geupdate!",
                   url: $commitUrl,
                   color: 15418782,
                   fields: [
