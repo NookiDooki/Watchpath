@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from collections import Counter
 from pathlib import Path
 from typing import Sequence
@@ -93,10 +94,17 @@ def _handle_parse_command(args: argparse.Namespace) -> int:
 
     stats = summarize_sessions(sessions)
 
+    total_sessions = len(sessions)
+
     rendered_reports: list[str] = []
     json_reports: list[dict] = []
     rich_payloads: list[dict] = []
-    for session in sessions:
+    for index, session in enumerate(sessions, start=1):
+        print(
+            f"[{index}/{total_sessions}] Analyzing session {session.session_id}...",
+            file=sys.stderr,
+            flush=True,
+        )
         chunk_text = build_session_chunk(session, args.chunk_size)
         analysis = analyze_logs_ollama_chunk(
             session_id=session.session_id,
@@ -115,6 +123,9 @@ def _handle_parse_command(args: argparse.Namespace) -> int:
                 rich_payloads.append(payload)
             else:
                 rendered_reports.append(format_session_report(session, analysis, stats))
+
+    if sessions:
+        print("Analysis complete.", file=sys.stderr, flush=True)
 
     if args.output_format == "json":
         print(json.dumps(json_reports, indent=2))

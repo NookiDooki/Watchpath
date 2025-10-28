@@ -17,7 +17,7 @@ class SessionAnalysis:
     session_id: str
     anomaly_score: Optional[float]
     analyst_note: str
-    evidence: str
+    evidence: str | list[str]
     raw_response: str
 
 
