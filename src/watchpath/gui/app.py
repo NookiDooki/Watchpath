@@ -349,7 +349,9 @@ class SessionDetailWidget(QWidget):
         self.score_bar.setObjectName("ScoreBar")
         self.score_bar.setAlignment(Qt.AlignCenter)
         self.score_bar.setFixedHeight(28)
-        self.score_bar.setMinimumContentsLength(16)
+        min_width = self.score_bar.fontMetrics().boundingRect("Mochi meter: 100%").width()
+        # Add a little padding so the text does not feel cramped.
+        self.score_bar.setMinimumWidth(int(min_width * 1.1))
         self.score_bar.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         self._default_score_style = ""
         self._safe_score_style = (
