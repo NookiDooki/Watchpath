@@ -1,128 +1,127 @@
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:1e3c72,100:2a5298&height=180&section=header&text=🔍%20Watchpath%20Log-Analyst&fontSize=36&fontColor=fff&animation=fadeIn&fontAlignY=38"/>
+  <img src="https://capsule-render.vercel.app/api?type=waving&height=180&text=Watchpath%20Observatory&fontSize=42&color=0:1d2671,100:c33764&fontColor=ffffff" alt="Watchpath Observatory" />
 </p>
 
 <p align="center">
-  <b>LLM-powered log parser with anomaly flags by ABI-Research 🧠💡</b><br>
-  <em>From raw logs → structured sessions → statistical anomalies → AI-written analyst notes</em>
+  <strong>From raw web logs to story-driven security intelligence.</strong><br/>
+  <em>Parse sessions, score anomalies, and brief stakeholders through a kawaii-ready desktop or the classic CLI.</em>
 </p>
 
 ---
 
-## 🚀 Overzicht
+## ✨ Why Watchpath?
 
-**Watchpath Log-Analyst** is een open-source tool voor automatische loganalyse met AI-ondersteuning.  
-Het parseert ruwe logs (zoals `nginx` of `auth`), extraheert kenmerken per sessie/IP, detecteert afwijkingen met eenvoudige regels & statistiek,  
-en laat vervolgens een **lokale LLM** (via [Ollama](https://ollama.com)) een korte _“analyst note”_ schrijven voor elke verdachte sessie.
-
-### 🧭 Waarom dit project?
-
-- 🔐 **Privacy-vriendelijk** — volledig lokaal via Ollama (geen cloud-LLM’s)  
-- 🤖 **AI + Security** — combineert traditionele analyse met LLM-context  
-- ⚡ **Demo-klaar in 2–3 dagen** — scorecards, anomaly flags en menselijke leesbare samenvattingen  
-- 💬 **Open-source mindset** — transparant, uitbreidbaar en reproduceerbaar  
+* 🧠 **Hybrid analytics** – deterministic statistics surface outliers while a local Ollama model narrates analyst notes for each session.
+* 🗂️ **Session-first view** – logs are grouped per visitor with rich metadata (methods, paths, duration, IP).
+* 💻 **Dual experience** – choose a fast terminal workflow or explore results inside the pastel "Mochi Observatory" GUI.
+* 🔐 **Fully local** – bring your own Ollama model and keep sensitive traffic inside your perimeter.
 
 ---
 
-## 🧩 Stack
+## 🚀 Quickstart
 
-| Domein | Technologie |
-|:--|:--|
-| **Core** | Python 3.11+, Typer + Rich (CLI), FastAPI (API) |
-| **AI-laag** | Ollama + Mistral 7B Instruct *(of Llama 3.x Instruct)* |
-| **Analytics** | Numpy / Scipy / Pandas (feature-extractie & statistiek) |
-| **Output** | CLI + web endpoint met JSON/Markdown “analyst notes” |
-
----
-
-## ⚙️ Quickstart
-
-### 1️⃣ Vereisten
-
-- Python 3.11 of hoger  
-- [Ollama](https://ollama.com) geïnstalleerd en actief  
-- Model ophalen:
+### 1. Install dependencies
 
 ```bash
-ollama pull mistral
-# of
-ollama pull llama3.1
-````
-
-### 2️⃣ Installatie
-
-```bash
-git clone https://github.com/<jouw-username>/watchpath-log-analyst.git
-cd watchpath-log-analyst
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3️⃣ Start CLI
+### 2. Pull an Ollama model
 
 ```bash
-python -m watchpath parse ./logs/nginx.log --model mistral
+ollama pull mistral:7b-instruct
+# or experiment with llama3.1, phi3, etc.
 ```
 
-De CLI toont vervolgens een scorecard met:
+### 3. Acquire logs
 
-* ⚠️ anomalie-score per sessie
-* 🧠 korte LLM-analyse (“analyst note”)
-* 📊 statistische context (gemiddelde sessieduur, IP-verspreiding, enz.)
+Drop your access log (NGINX, Apache, auth, custom JSON) into `./logs/`. A sample dataset lives in that folder for experimentation.
 
 ---
 
-## 📸 Voorbeeld-output
+## 🛠️ Command Line Flow
 
-```text
-[session: 10.0.3.41]
-Anomaly Score: 0.91 ⚠️
-Analyst Note (LLM):
-> Multiple failed auth attempts from a single IP within 3 min window.
-> Likely brute-force behavior. Consider temporary block.
-```
-
----
-
-## 🔍 Roadmap
-
-* [ ] YAML/JSON ingest uitbreiden
-* [ ] Grafana-export plugin
-* [ ] Fine-tuning via lokale embeddings
-* [ ] Real-time API stream
-* [ ] Auto-correlation tussen sessies
-
----
-
-## 🧑‍💻 Contributie
-
-Pull requests en feature-suggesties zijn welkom!
-Gebruik bij voorkeur **feature branches** en voeg duidelijke testcases toe.
+The CLI keeps you productive when you want quick answers or need to automate reports.
 
 ```bash
-git checkout -b feature/<naam>
+python -m watchpath parse ./logs/sample.log \
+  --model mistral:7b-instruct \
+  --chunk-size 60 \
+  --prompt prompts/base_prompt.txt \
+  --output-format markdown
 ```
+
+### Core options
+
+| Flag | Description |
+| --- | --- |
+| `log_path` | Path to the log file that should be analyzed. |
+| `--model` | Ollama model name. Defaults to `mistral:7b-instruct`. |
+| `--chunk-size` | Number of log lines sent per LLM request. |
+| `--prompt` | Prompt template passed to the model. |
+| `--output-format` | `text`, `markdown`, or `json`. |
+| `--rich` | Render a pastel-rich terminal dashboard using Rich panels. |
+| `--confirm-each-session` | Pause after every session so you can stop early. |
+
+### What you receive
+
+* ⚠️ **Anomaly score** – probability that the session is suspicious.
+* 🧠 **Analyst note** – a concise Ollama-generated summary.
+* 📊 **Context** – method counts, path diversity, session length, IP metadata.
+* 🗒️ **Markdown or JSON** – feed straight into reports, dashboards, or docs.
+
+> Tip: use `jq` together with `--output-format json` to automate triage playbooks.
 
 ---
 
-## 🧠 Licentie
+## 🌸 Mochi Observatory GUI
 
-Released onder de **MIT-licentie**.
-Gebruik het, wijzig het, deel het — zolang de credits behouden blijven.
+Prefer a kawaii command center? Launch the PySide6 desktop experience:
+
+```bash
+python -m watchpath gui ./logs/sample.log \
+  --model mistral:7b-instruct \
+  --chunk-size 60 \
+  --prompt prompts/base_prompt.txt
+```
+
+### Highlights
+
+* 🎠 **Session carousel** – swipe through visitor journeys with animated anomaly rings.
+* 💬 **Evidence storybook** – collapse/expand AI evidence, raw log lines, and timeline views.
+* 🧁 **Drag & drop ingest** – drop new logs onto the window to trigger fresh analysis.
+* 🌈 **Real-time vibes** – background threads stream results while pastel mascots react to risk levels.
+
+You can launch the GUI without a log path and drag files in later. Settings panels let you adjust model name, chunk size, and prompts on the fly.
+
+---
+
+## 🧭 Typical Workflow
+
+1. **Collect** – ingest your log file (CLI argument or drag-and-drop).
+2. **Process** – Watchpath groups lines into sessions and applies anomaly scoring.
+3. **Review** – read analyst notes, inspect evidence, and compare sessions side-by-side.
+4. **Act** – export Markdown/JSON from the CLI or copy notes from the GUI for incident tickets.
+
+---
+
+## 📚 Helpful References
+
+* `prompts/base_prompt.txt` – the default LLM system prompt. Customize it to reflect your playbook.
+* `tests/fixtures/` – sample logs and expected payloads, handy for understanding the session schema.
+* `src/watchpath/parser.py` – deep dive into how sessions are assembled and scored.
+
+---
+
+## 🤝 Contributing
+
+We welcome pull requests! Please include tests (`pytest`) and share screenshots or recordings for UI changes so others can preview the kawaii flair.
 
 ---
 
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:2a5298,100:1e3c72&height=120&section=footer"/>
+  <img src="https://capsule-render.vercel.app/api?type=waving&height=120&section=footer&color=0:c33764,100:1d2671" alt="Watchpath footer" />
 </p>
 
-<p align="center">
-  <a href="https://github.com/NookiDooki">
-    <img src="https://img.shields.io/github/stars/NookiDooki/Watchpath?style=social" />
-  </a>
-  <a href="https://ollama.com">
-    <img src="https://img.shields.io/badge/Ollama-local--LLM-blue?logo=openai" />
-  </a>
-  <a href="https://python.org">
-    <img src="https://img.shields.io/badge/Made%20with-Python%20🐍-green?logo=python" />
-  </a>
-</p>

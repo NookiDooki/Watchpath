@@ -1,6 +1,7 @@
 """Watchpath log analysis package."""
 
 from .ai import SessionAnalysis
+from .gui import launch_gui
 from .parser import (
     Session,
     SessionStatistics,
@@ -26,4 +27,5 @@ __all__ = [
     "format_session_report",
     "load_sessions",
     "summarize_sessions",
+    "launch_gui",
 ]
