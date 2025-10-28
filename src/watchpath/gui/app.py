@@ -49,6 +49,31 @@ from ..parser import (
 
 DEFAULT_PROMPT_PATH = Path("prompts/base_prompt.txt")
 
+@dataclass(frozen=True)
+class RiskVisual:
+    """Visual configuration for a specific risk band."""
+
+    text: str
+    chunk_start: str
+    chunk_end: str
+    mascot: str
+    background: str | None = None
+    border: str | None = None
+
+
+@dataclass(frozen=True)
+class ScoreTheme:
+    """Theme-driven styling for the Mochi meter."""
+
+    background: str
+    border: str
+    text: str
+    chunk_start: str
+    chunk_end: str
+    mascot: str
+    risks: dict[str, RiskVisual]
+
+
 DARK_STYLESHEET = """
 QMainWindow { background: #101421; color: #edf1ff; }
 QStatusBar { background: #151c2d; color: #c0cae5; border-top: 1px solid #222d42; }
@@ -220,31 +245,6 @@ class ProcessedSession:
     payload: dict
     text_report: str
     markdown_report: str
-
-
-@dataclass(frozen=True)
-class RiskVisual:
-    """Visual configuration for a specific risk band."""
-
-    text: str
-    chunk_start: str
-    chunk_end: str
-    mascot: str
-    background: str | None = None
-    border: str | None = None
-
-
-@dataclass(frozen=True)
-class ScoreTheme:
-    """Theme-driven styling for the Mochi meter."""
-
-    background: str
-    border: str
-    text: str
-    chunk_start: str
-    chunk_end: str
-    mascot: str
-    risks: dict[str, RiskVisual]
 
 
 class AnalysisWorker(QObject):
