@@ -34,7 +34,11 @@ jobs:
                 username: "Watchpath Bot",
                 embeds: [{
                   title: "(๑˃ᴗ˂)ﻭ Nieuwe branch deployed!",
-                  description: ("**Repository**\\n`\($repo)`\\n\\n**Nieuwe tak**\\n`\($branch)`\\n\\n> _(✿◠‿◠) En nu lekker bouwen!_"),
+                  description: (
+                    "**Repository**\n`" + $repo + "`\n\n" +
+                    "**Nieuwe tak**\n`" + $branch + "`\n\n" +
+                    "> _(✿◠‿◠) En nu lekker bouwen!_"
+                  ),
                   url: $url,
                   color: 5814783,
                   fields: [
@@ -60,12 +64,17 @@ jobs:
                   url: $commitUrl,
                   color: 15418782,
                   fields: [
-                    {name: "Commit", value: (if $commitUrl != "" then "[`View on GitHub`]($commitUrl)" else "`(pending)`" end), inline: true},
-                    {name: "Diff", value: (if $compare != "" then "[`Compare changes`]($compare)" else "`n/a`" end), inline: true},
+                    {name: "Commit", value: (if $commitUrl != "" then "[`View on GitHub`](" + $commitUrl + ")" else "`(pending)`" end), inline: true},
+                    {name: "Diff", value: (if $compare != "" then "[`Compare changes`](" + $compare + ")" else "`n/a`" end), inline: true},
                     {name: "Author", value: $committer, inline: true}
                   ],
                   footer: {text: "Message"},
-                  description: ("**Repository**\\n`\($repo)`\\n\\n**Branch**\\n`\($branch)`\\n\\n>>> \(if ($message | length) > 0 then $message else \"Geen commitbericht opgegeven.\" end)\\n\\n> _(＾▽＾) Weer een stap verderrr!_"),
+                  description: (
+                    "**Repository**\n`" + $repo + "`\n\n" +
+                    "**Branch**\n`" + $branch + "`\n\n>>> " +
+                    (if ($message | length) > 0 then $message else "Geen commitbericht opgegeven." end) +
+                    "\n\n> _(＾▽＾) Weer een stap verderrr!_"
+                  ),
                   timestamp: (now | todate)
                 }]
               }'
