@@ -33,11 +33,11 @@ jobs:
               '{
                 username: "Watchpath Bot",
                 embeds: [{
-                  title: "(๑˃ᴗ˂)ﻭ Nieuwe branch deployed!",
+                  title: "🫡 Nieuwe branch deployed!",
                   description: (
                     "**Repository**\n`" + $repo + "`\n\n" +
                     "**Nieuwe tak**\n`" + $branch + "`\n\n" +
-                    "> _(✿◠‿◠) En nu lekker bouwen!_"
+                    "> _(づ｡◕‿‿◕｡)づ_"
                   ),
                   url: $url,
                   color: 5814783,
@@ -60,7 +60,7 @@ jobs:
               '{
                 username: "Watchpath Bot",
                 embeds: [{
-                  title: "(づ｡◕‿‿◕｡)づ Main Branch Bijgewerkt",
+                  title: "🍵 Main Branch Bijgewerkt",
                   url: $commitUrl,
                   color: 15418782,
                   fields: [
@@ -73,7 +73,7 @@ jobs:
                     "**Repository**\n`" + $repo + "`\n\n" +
                     "**Branch**\n`" + $branch + "`\n\n>>> " +
                     (if ($message | length) > 0 then $message else "Geen commitbericht opgegeven." end) +
-                    "\n\n> _(＾▽＾) Weer een stap verderrr!_"
+                    "\n\n> _(づ｡◕‿‿◕｡)づ_"
                   ),
                   timestamp: (now | todate)
                 }]
