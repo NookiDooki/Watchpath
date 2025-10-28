@@ -33,8 +33,8 @@ jobs:
               '{
                 username: "Watchpath Bot",
                 embeds: [{
-                  title: "(๑˃ᴗ˂)ﻭ Nieuwe tak ontwaakt!",
-                  description: ("**Repository**\\n`\($repo)`\\n\\n**Nieuwe tak**\\n`\($branch)`\\n\\n> _(✿◠‿◠) Veel succes met bouwen!_"),
+                  title: "(๑˃ᴗ˂)ﻭ Nieuwe branch deployed!",
+                  description: ("**Repository**\\n`\($repo)`\\n\\n**Nieuwe tak**\\n`\($branch)`\\n\\n> _(✿◠‿◠) En nu lekker bouwen!_"),
                   url: $url,
                   color: 5814783,
                   fields: [
@@ -56,7 +56,7 @@ jobs:
               '{
                 username: "Watchpath Bot",
                 embeds: [{
-                  title: "(づ｡◕‿‿◕｡)づ Hoofdbranch bijgewerkt!",
+                  title: "(づ｡◕‿‿◕｡)づ Main Branch Bijgewerkt",
                   url: $commitUrl,
                   color: 15418782,
                   fields: [
@@ -65,7 +65,7 @@ jobs:
                     {name: "Author", value: $committer, inline: true}
                   ],
                   footer: {text: "Message"},
-                  description: ("**Repository**\\n`\($repo)`\\n\\n**Branch**\\n`\($branch)`\\n\\n>>> \(if ($message | length) > 0 then $message else \"Geen commitbericht opgegeven.\" end)\\n\\n> _(＾▽＾) Samen verder bouwen!_"),
+                  description: ("**Repository**\\n`\($repo)`\\n\\n**Branch**\\n`\($branch)`\\n\\n>>> \(if ($message | length) > 0 then $message else \"Geen commitbericht opgegeven.\" end)\\n\\n> _(＾▽＾) Weer een stap verderrr!_"),
                   timestamp: (now | todate)
                 }]
               }'
