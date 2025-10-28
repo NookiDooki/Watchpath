@@ -20,6 +20,7 @@ from .parser import (
 )
 
 DEFAULT_PROMPT_PATH = Path("prompts/base_prompt.txt")
+DEFAULT_SESSION_LIMIT = 5
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -96,6 +97,8 @@ def _handle_parse_command(args: argparse.Namespace) -> int:
     if not sessions:
         print("No sessions found in log.")
         return 0
+
+    sessions = sessions[:DEFAULT_SESSION_LIMIT]
 
     stats = summarize_sessions(sessions)
 
