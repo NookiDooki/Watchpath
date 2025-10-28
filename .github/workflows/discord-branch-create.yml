@@ -33,8 +33,8 @@ jobs:
               '{
                 username: "Watchpath Bot",
                 embeds: [{
-                  title: "🌱 Nieuwe Branch is Gespawned!",
-                  description: ("**Repository**\\n`\($repo)`\\n\\n**Branch**\\n`\($branch)`"),
+                  title: "(๑˃ᴗ˂)ﻭ Nieuwe tak ontwaakt!",
+                  description: ("**Repository**\\n`\($repo)`\\n\\n**Nieuwe tak**\\n`\($branch)`\\n\\n> _(✿◠‿◠) Veel succes met bouwen!_"),
                   url: $url,
                   color: 5814783,
                   fields: [
@@ -46,11 +46,17 @@ jobs:
                 }]
               }'
           else
-            jq -n --arg repo "$REPO" --arg branch "$BRANCH" --arg committer "$COMMITTER" --arg message "$COMMIT_MESSAGE" --arg commitUrl "$COMMIT_URL" --arg compare "$COMPARE_URL" \
+            jq -n \
+              --arg repo "$REPO" \
+              --arg branch "$BRANCH" \
+              --arg committer "$COMMITTER" \
+              --arg message "$COMMIT_MESSAGE" \
+              --arg commitUrl "$COMMIT_URL" \
+              --arg compare "$COMPARE_URL" \
               '{
                 username: "Watchpath Bot",
                 embeds: [{
-                  title: "🚀 Main branch is geupdate!",
+                  title: "(づ｡◕‿‿◕｡)づ Hoofdbranch bijgewerkt!",
                   url: $commitUrl,
                   color: 15418782,
                   fields: [
@@ -59,7 +65,7 @@ jobs:
                     {name: "Author", value: $committer, inline: true}
                   ],
                   footer: {text: "Message"},
-                  description: ("**Repository**\\n`\($repo)`\\n\\n**Branch**\\n`\($branch)`\\n\\n>>> \($message | if (.|length) > 0 then . else \"No commit message provided.\" end)"),
+                  description: ("**Repository**\\n`\($repo)`\\n\\n**Branch**\\n`\($branch)`\\n\\n>>> \(if ($message | length) > 0 then $message else \"Geen commitbericht opgegeven.\" end)\\n\\n> _(＾▽＾) Samen verder bouwen!_"),
                   timestamp: (now | todate)
                 }]
               }'
