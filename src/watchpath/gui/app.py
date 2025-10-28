@@ -49,6 +49,169 @@ from ..parser import (
 
 DEFAULT_PROMPT_PATH = Path("prompts/base_prompt.txt")
 
+DARK_STYLESHEET = """
+QMainWindow { background: #101421; color: #edf1ff; }
+QStatusBar { background: #151c2d; color: #c0cae5; border-top: 1px solid #222d42; }
+QToolBar#MochiToolbar { background: #151c2d; border: 0; padding: 6px; spacing: 12px; }
+#MochiToolbar QLabel { padding: 0 6px; font-weight: 600; color: #9fb3df; }
+QPushButton, QComboBox, QSpinBox { background: #232d45; border: 1px solid #2f3b58; color: #edf1ff; border-radius: 8px; padding: 6px 10px; }
+QPushButton:hover, QComboBox:hover, QSpinBox:hover { border-color: #5b8def; }
+QPushButton:pressed { background: #1b2235; }
+QComboBox QAbstractItemView { background: #151c2d; color: #edf1ff; selection-background-color: #2f3b58; }
+QSlider::groove:horizontal { background: #232d45; height: 6px; border-radius: 3px; }
+QSlider::handle:horizontal { background: #5b8def; width: 18px; margin: -6px 0; border-radius: 9px; }
+QSlider::sub-page:horizontal { background: #5b8def; }
+#GlobalStats { background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #1b2235, stop:1 #232d45); border-radius: 18px; border: 1px solid #2f3b58; }
+#GlobalStatLabel, #GlobalStats QLabel { color: #c0cae5; }
+#SessionCarousel { background: #151c2d; border-radius: 16px; padding: 12px; }
+#SessionCarousel::item { background: #232d45; border-radius: 18px; padding: 14px; margin: 6px; color: #edf1ff; border: 1px solid #2f3b58; }
+#SessionCarousel::item:selected { background: #2f3b58; border: 1px solid #5b8def; }
+#SessionStatsCard { background: #1b2235; border-radius: 20px; padding: 18px; border: 1px solid #2f3b58; }
+#AnalystNote { background: #151c2d; border-radius: 20px; padding: 18px; border: 1px dashed #2f3b58; color: #c0cae5; }
+#SessionTabs::pane { border: 0; }
+#SessionTabs::tab-bar { left: 12px; }
+#SessionTabs::tab { background: #232d45; border-radius: 16px; padding: 8px 16px; margin-right: 8px; color: #c0cae5; border: 1px solid transparent; }
+#SessionTabs::tab:selected { background: #2f3b58; color: #ffffff; border-color: #5b8def; }
+QTextBrowser#EvidenceView, QTextBrowser#LogsView, QTextBrowser#MarkdownView { background: #151c2d; border-radius: 16px; padding: 12px; border: 1px solid #2f3b58; color: #edf1ff; }
+QListWidget#SessionCarousel QScrollBar:vertical { background: #151c2d; width: 10px; }
+QListWidget#SessionCarousel QScrollBar::handle:vertical { background: #2f3b58; border-radius: 5px; }
+QListWidget#SessionCarousel QScrollBar::handle:vertical:hover { background: #5b8def; }
+"""
+
+LIGHT_STYLESHEET = """
+QMainWindow { background: #f5f7fb; color: #1f2933; }
+QStatusBar { background: #ffffff; color: #475569; border-top: 1px solid #d8def3; }
+QToolBar#MochiToolbar { background: #ffffff; border: 0; padding: 6px; spacing: 12px; }
+#MochiToolbar QLabel { padding: 0 6px; font-weight: 600; color: #6b7cc9; }
+QPushButton, QComboBox, QSpinBox { background: #ffffff; border: 1px solid #d0d7ee; color: #1f2933; border-radius: 8px; padding: 6px 10px; }
+QPushButton:hover, QComboBox:hover, QSpinBox:hover { border-color: #4c6ef5; }
+QPushButton:pressed { background: #e9edfb; }
+QComboBox QAbstractItemView { background: #ffffff; color: #1f2933; selection-background-color: #e1e7fb; }
+QSlider::groove:horizontal { background: #d0d7ee; height: 6px; border-radius: 3px; }
+QSlider::handle:horizontal { background: #4c6ef5; width: 18px; margin: -6px 0; border-radius: 9px; }
+QSlider::sub-page:horizontal { background: #4c6ef5; }
+#GlobalStats { background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #ffffff, stop:1 #e8ecfb); border-radius: 18px; border: 1px solid #d0d7ee; }
+#GlobalStatLabel, #GlobalStats QLabel { color: #475569; }
+#SessionCarousel { background: #ffffff; border-radius: 16px; padding: 12px; }
+#SessionCarousel::item { background: #f1f4ff; border-radius: 18px; padding: 14px; margin: 6px; color: #1f2933; border: 1px solid #d0d7ee; }
+#SessionCarousel::item:selected { background: #dde4ff; border: 1px solid #4c6ef5; }
+#SessionStatsCard { background: #ffffff; border-radius: 20px; padding: 18px; border: 1px solid #d0d7ee; }
+#AnalystNote { background: #ffffff; border-radius: 20px; padding: 18px; border: 1px dashed #c3cefa; color: #475569; }
+#SessionTabs::pane { border: 0; }
+#SessionTabs::tab-bar { left: 12px; }
+#SessionTabs::tab { background: #e7ebfb; border-radius: 16px; padding: 8px 16px; margin-right: 8px; color: #475569; border: 1px solid transparent; }
+#SessionTabs::tab:selected { background: #4c6ef5; color: #f8fafc; border-color: #4c6ef5; }
+QTextBrowser#EvidenceView, QTextBrowser#LogsView, QTextBrowser#MarkdownView { background: #ffffff; border-radius: 16px; padding: 12px; border: 1px solid #d0d7ee; color: #1f2933; }
+QListWidget#SessionCarousel QScrollBar:vertical { background: #ffffff; width: 10px; }
+QListWidget#SessionCarousel QScrollBar::handle:vertical { background: #c3cefa; border-radius: 5px; }
+QListWidget#SessionCarousel QScrollBar::handle:vertical:hover { background: #4c6ef5; }
+"""
+
+THEME_CONFIGS = {
+    "dark": {
+        "palette": {
+            QPalette.Window: "#101421",
+            QPalette.WindowText: "#edf1ff",
+            QPalette.Base: "#1b2235",
+            QPalette.AlternateBase: "#232d45",
+            QPalette.Text: "#edf1ff",
+            QPalette.Button: "#232d45",
+            QPalette.ButtonText: "#edf1ff",
+            QPalette.Highlight: "#5b8def",
+            QPalette.HighlightedText: "#0b101c",
+            QPalette.ToolTipBase: "#232d45",
+            QPalette.ToolTipText: "#edf1ff",
+            QPalette.BrightText: "#ff9ad6",
+        },
+        "stylesheet": DARK_STYLESHEET,
+        "score_theme": ScoreTheme(
+            background="#151c2d",
+            border="#2f3b58",
+            text="#edf1ff",
+            chunk_start="#5b8def",
+            chunk_end="#70c1ff",
+            mascot="#ffe6ff",
+            risks={
+                "safe": RiskVisual(
+                    text="#34d399",
+                    chunk_start="#0f766e",
+                    chunk_end="#34d399",
+                    mascot="#34d399",
+                ),
+                "low": RiskVisual(
+                    text="#facc15",
+                    chunk_start="#b45309",
+                    chunk_end="#facc15",
+                    mascot="#facc15",
+                ),
+                "medium": RiskVisual(
+                    text="#fb923c",
+                    chunk_start="#b43403",
+                    chunk_end="#fb923c",
+                    mascot="#fb923c",
+                ),
+                "high": RiskVisual(
+                    text="#f87171",
+                    chunk_start="#dc2626",
+                    chunk_end="#f87171",
+                    mascot="#f87171",
+                ),
+            },
+        ),
+    },
+    "light": {
+        "palette": {
+            QPalette.Window: "#f5f7fb",
+            QPalette.WindowText: "#1f2933",
+            QPalette.Base: "#ffffff",
+            QPalette.AlternateBase: "#eef1fb",
+            QPalette.Text: "#1f2933",
+            QPalette.Button: "#ffffff",
+            QPalette.ButtonText: "#1f2933",
+            QPalette.Highlight: "#4c6ef5",
+            QPalette.HighlightedText: "#f8fafc",
+            QPalette.ToolTipBase: "#ffffff",
+            QPalette.ToolTipText: "#1f2933",
+            QPalette.BrightText: "#f97316",
+        },
+        "stylesheet": LIGHT_STYLESHEET,
+        "score_theme": ScoreTheme(
+            background="#ffffff",
+            border="#d0d7ee",
+            text="#1f2933",
+            chunk_start="#4c6ef5",
+            chunk_end="#70a1ff",
+            mascot="#4c6ef5",
+            risks={
+                "safe": RiskVisual(
+                    text="#047857",
+                    chunk_start="#6ee7b7",
+                    chunk_end="#22c55e",
+                    mascot="#047857",
+                ),
+                "low": RiskVisual(
+                    text="#b45309",
+                    chunk_start="#fde68a",
+                    chunk_end="#facc15",
+                    mascot="#b45309",
+                ),
+                "medium": RiskVisual(
+                    text="#c2410c",
+                    chunk_start="#fed7aa",
+                    chunk_end="#fb923c",
+                    mascot="#c2410c",
+                ),
+                "high": RiskVisual(
+                    text="#b91c1c",
+                    chunk_start="#fecaca",
+                    chunk_end="#f87171",
+                    mascot="#b91c1c",
+                ),
+            },
+        ),
+    },
+}
+
 
 @dataclass
 class ProcessedSession:
@@ -57,6 +220,31 @@ class ProcessedSession:
     payload: dict
     text_report: str
     markdown_report: str
+
+
+@dataclass(frozen=True)
+class RiskVisual:
+    """Visual configuration for a specific risk band."""
+
+    text: str
+    chunk_start: str
+    chunk_end: str
+    mascot: str
+    background: str | None = None
+    border: str | None = None
+
+
+@dataclass(frozen=True)
+class ScoreTheme:
+    """Theme-driven styling for the Mochi meter."""
+
+    background: str
+    border: str
+    text: str
+    chunk_start: str
+    chunk_end: str
+    mascot: str
+    risks: dict[str, RiskVisual]
 
 
 class AnalysisWorker(QObject):
@@ -345,19 +533,18 @@ class SessionDetailWidget(QWidget):
         self.score_bar = QProgressBar()
         self.score_bar.setMaximum(100)
         self.score_bar.setMinimum(0)
-        self.score_bar.setFormat("Mochi meter: %p%")
+        self.score_bar.setFormat("Mochi meter: 0.00% (Safe)")
         self.score_bar.setObjectName("ScoreBar")
         self.score_bar.setAlignment(Qt.AlignCenter)
         self.score_bar.setFixedHeight(28)
-        min_width = self.score_bar.fontMetrics().boundingRect("Mochi meter: 100%").width()
+        max_label = "Mochi meter: 100.00% (Critical)"
+        metrics = self.score_bar.fontMetrics()
+        min_width = metrics.boundingRect(max_label).width()
         # Add a little padding so the text does not feel cramped.
-        self.score_bar.setMinimumWidth(int(min_width * 1.1))
+        self.score_bar.setMinimumWidth(int(min_width * 1.25))
         self.score_bar.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
-        self._default_score_style = ""
-        self._safe_score_style = (
-            "QProgressBar { color: #34d399; }\n"
-            "QProgressBar::chunk { background: #14532d; }"
-        )
+        self._score_theme: ScoreTheme | None = None
+        self._current_risk_key = "safe"
         header.addWidget(self.score_bar, 0)
 
         self.mascot = MascotWidget()
@@ -407,8 +594,8 @@ class SessionDetailWidget(QWidget):
         self._current_session = None
         self.session_label.setText("Pick a session to see its story ✨")
         self.score_bar.setValue(0)
-        self.score_bar.setFormat("Mochi meter: %p%")
-        self.score_bar.setStyleSheet(self._default_score_style)
+        self.score_bar.setFormat("Mochi meter: 0.00% (Safe)")
+        self._apply_risk_style("safe")
         self.duration_label.setText("—")
         self.request_label.setText("—")
         self.unique_label.setText("—")
@@ -427,14 +614,7 @@ class SessionDetailWidget(QWidget):
         self.session_label.setText(f"Session {payload['session_id']} ✦ IP {payload['ip']}")
 
         score = payload.get("anomaly_score")
-        if isinstance(score, (int, float)) and math.isfinite(score):
-            self.score_bar.setValue(int(score * 100))
-            self.score_bar.setFormat(f"Mochi meter: {score:.2f}")
-            self.score_bar.setStyleSheet(self._default_score_style)
-        else:
-            self.score_bar.setValue(0)
-            self.score_bar.setFormat("Mochi meter: 0.00 (Safe)")
-            self.score_bar.setStyleSheet(self._safe_score_style)
+        self._update_score_display(score)
         self.mascot.update_mood(score if isinstance(score, (int, float)) else None)
 
         stats = payload["session_stats"]
@@ -463,6 +643,78 @@ class SessionDetailWidget(QWidget):
         self.logs_view.setPlainText(raw_logs)
         self.markdown_view.setMarkdown(processed.markdown_report)
         self._fade_animation.start()
+
+    def apply_theme(self, theme: ScoreTheme) -> None:
+        """Refresh the Mochi meter styling to match the selected theme."""
+
+        self._score_theme = theme
+        # Re-apply the current risk style so the colors stay in sync.
+        self._apply_risk_style(self._current_risk_key)
+
+    def _update_score_display(self, score: Optional[float]) -> None:
+        if isinstance(score, (int, float)) and math.isfinite(score):
+            percent = max(0.0, min(score * 100.0, 100.0))
+            label, risk_key = self._classify_risk(percent)
+            self.score_bar.setValue(int(round(percent)))
+            self.score_bar.setFormat(f"Mochi meter: {percent:.2f}% ({label})")
+            self._apply_risk_style(risk_key)
+        else:
+            self.score_bar.setValue(0)
+            self.score_bar.setFormat("Mochi meter: 0.00% (Safe)")
+            self._apply_risk_style("safe")
+
+    def _apply_risk_style(self, key: str) -> None:
+        self._current_risk_key = key
+        if self._score_theme is None:
+            return
+
+        theme = self._score_theme
+        risk = theme.risks.get(key, theme.risks.get("safe"))
+        if risk is None:
+            risk = RiskVisual(
+                text=theme.text,
+                chunk_start=theme.chunk_start,
+                chunk_end=theme.chunk_end,
+                mascot=theme.mascot,
+            )
+
+        background = risk.background or theme.background
+        border = risk.border or theme.border
+        text_color = risk.text or theme.text
+        chunk_start = risk.chunk_start or theme.chunk_start
+        chunk_end = risk.chunk_end or theme.chunk_end
+        mascot_color = risk.mascot or theme.mascot
+
+        self.score_bar.setStyleSheet(
+            " ".join(
+                [
+                    (
+                        "QProgressBar { "
+                        f"border: 1px solid {border}; "
+                        "border-radius: 14px; text-align: center; "
+                        f"background: {background}; color: {text_color}; padding: 0 20px; }"
+                    ),
+                    (
+                        "QProgressBar::chunk { "
+                        "border-radius: 12px; "
+                        "background: qlineargradient(x1:0, y1:0, x2:1, y2:0, "
+                        f"stop:0 {chunk_start}, stop:1 {chunk_end}); }"
+                    ),
+                ]
+            )
+        )
+        self.mascot.setStyleSheet(f"padding: 0 12px; color: {mascot_color};")
+
+    @staticmethod
+    def _classify_risk(percent: float) -> tuple[str, str]:
+        if percent <= 0:
+            return "Safe", "safe"
+        if percent <= 10:
+            return "Caution", "low"
+        if percent < 60:
+            # Treat anything above 10 up to 60 as elevated attention.
+            return "Elevated", "medium"
+        return "Critical", "high"
 
     @staticmethod
     def _format_duration(seconds: float) -> str:
@@ -517,10 +769,11 @@ class KawaiiMainWindow(QMainWindow):
 
         self._default_prompt_path = default_prompt_path or DEFAULT_PROMPT_PATH
 
+        self._theme = "dark"
         self._build_toolbar(default_model, default_chunk_size)
         self._build_status_bar()
         self._build_layout()
-        self._apply_stylesheet()
+        self._apply_theme()
 
     # ----- UI construction -------------------------------------------------
     def _build_toolbar(self, default_model: str, default_chunk_size: int) -> None:
@@ -572,6 +825,12 @@ class KawaiiMainWindow(QMainWindow):
         toolbar.addWidget(QLabel("Anomaly threshold"))
         toolbar.addWidget(self.vibe_slider)
 
+        toolbar.addSeparator()
+        self.theme_button = QPushButton("☀️ Light mode")
+        self.theme_button.clicked.connect(self._toggle_theme)
+        self.theme_button.setToolTip("Switch between light and dark vibes")
+        toolbar.addWidget(self.theme_button)
+
     def _build_status_bar(self) -> None:
         status = QStatusBar()
         self.progress_bar = QProgressBar()
@@ -603,60 +862,23 @@ class KawaiiMainWindow(QMainWindow):
 
         self.setCentralWidget(central)
 
-    def _apply_stylesheet(self) -> None:
+    def _apply_theme(self) -> None:
+        theme = THEME_CONFIGS[self._theme]
         palette = QPalette()
-        deep_background = QColor("#101421")
-        surface = QColor("#1b2235")
-        card = QColor("#232d45")
-        accent = QColor("#5b8def")
-        text_primary = QColor("#edf1ff")
-
-        palette.setColor(QPalette.Window, deep_background)
-        palette.setColor(QPalette.WindowText, text_primary)
-        palette.setColor(QPalette.Base, surface)
-        palette.setColor(QPalette.AlternateBase, card)
-        palette.setColor(QPalette.Text, text_primary)
-        palette.setColor(QPalette.Button, card)
-        palette.setColor(QPalette.ButtonText, text_primary)
-        palette.setColor(QPalette.Highlight, accent)
-        palette.setColor(QPalette.HighlightedText, QColor("#0b101c"))
-        palette.setColor(QPalette.ToolTipBase, card)
-        palette.setColor(QPalette.ToolTipText, text_primary)
-        palette.setColor(QPalette.BrightText, QColor("#ff9ad6"))
+        for role, color in theme["palette"].items():
+            palette.setColor(role, QColor(color))
         self.setPalette(palette)
 
-        self.setStyleSheet(
-            """
-            QMainWindow { background: #101421; color: #edf1ff; }
-            QStatusBar { background: #151c2d; color: #c0cae5; border-top: 1px solid #222d42; }
-            QToolBar#MochiToolbar { background: #151c2d; border: 0; padding: 6px; spacing: 12px; }
-            #MochiToolbar QLabel { padding: 0 6px; font-weight: 600; color: #9fb3df; }
-            QPushButton, QComboBox, QSpinBox { background: #232d45; border: 1px solid #2f3b58; color: #edf1ff; border-radius: 8px; padding: 6px 10px; }
-            QPushButton:hover, QComboBox:hover, QSpinBox:hover { border-color: #5b8def; }
-            QSlider::groove:horizontal { background: #232d45; height: 6px; border-radius: 3px; }
-            QSlider::handle:horizontal { background: #5b8def; width: 18px; margin: -6px 0; border-radius: 9px; }
-            QSlider::sub-page:horizontal { background: #5b8def; }
-            #GlobalStats { background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #1b2235, stop:1 #232d45); border-radius: 18px; border: 1px solid #2f3b58; }
-            #GlobalStatLabel, #GlobalStats QLabel { color: #c0cae5; }
-            #SessionCarousel { background: #151c2d; border-radius: 16px; padding: 12px; }
-            #SessionCarousel::item { background: #232d45; border-radius: 18px; padding: 14px; margin: 6px; color: #edf1ff; border: 1px solid #2f3b58; }
-            #SessionCarousel::item:selected { background: #2f3b58; border: 1px solid #5b8def; }
-            #SessionStatsCard { background: #1b2235; border-radius: 20px; padding: 18px; border: 1px solid #2f3b58; }
-            #ScoreBar { border: 1px solid #2f3b58; border-radius: 14px; text-align: center; background: #151c2d; color: #edf1ff; padding: 0 16px; }
-            #ScoreBar::chunk { background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #5b8def, stop:1 #70c1ff); border-radius: 12px; }
-            #AnalystNote { background: #151c2d; border-radius: 20px; padding: 18px; border: 1px dashed #2f3b58; color: #c0cae5; }
-            #SessionTabs::pane { border: 0; }
-            #SessionTabs::tab-bar { left: 12px; }
-            #SessionTabs::tab { background: #232d45; border-radius: 16px; padding: 8px 16px; margin-right: 8px; color: #c0cae5; border: 1px solid transparent; }
-            #SessionTabs::tab:selected { background: #2f3b58; color: #ffffff; border-color: #5b8def; }
-            QTextBrowser#EvidenceView, QTextBrowser#LogsView, QTextBrowser#MarkdownView { background: #151c2d; border-radius: 16px; padding: 12px; border: 1px solid #2f3b58; color: #edf1ff; }
-            QLabel#TanukiMascot { padding: 0 12px; color: #ffe6ff; }
-            QListWidget#SessionCarousel QScrollBar:vertical { background: #151c2d; width: 10px; }
-            QListWidget#SessionCarousel QScrollBar::handle:vertical { background: #2f3b58; border-radius: 5px; }
-            QListWidget#SessionCarousel QScrollBar::handle:vertical:hover { background: #5b8def; }
-        """
-        )
+        self.setStyleSheet(theme["stylesheet"])
+        self.detail_widget.apply_theme(theme["score_theme"])
+        if hasattr(self, "theme_button"):
+            self.theme_button.setText(
+                "🌙 Dark mode" if self._theme == "light" else "☀️ Light mode"
+            )
 
+    def _toggle_theme(self) -> None:
+        self._theme = "light" if self._theme == "dark" else "dark"
+        self._apply_theme()
     # ----- Actions ---------------------------------------------------------
     def _choose_log_file(self) -> None:
         dialog = QFileDialog(self, "Choose a log file", str(Path.cwd()), "Log files (*.log *.txt);;All files (*)")
