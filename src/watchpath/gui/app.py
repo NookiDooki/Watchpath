@@ -7,14 +7,15 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Optional
 
-from PySide6.QtCore import QObject, Qt, QThread, Signal
-from PySide6.QtGui import QAction, QFont, QPalette
+from PySide6.QtCore import QObject, Qt, QThread, Signal, QEasingCurve, QPropertyAnimation
+from PySide6.QtGui import QAction, QFont, QPalette, QColor
 from PySide6.QtWidgets import (
     QComboBox,
     QFileDialog,
     QFormLayout,
     QFrame,
     QHBoxLayout,
+    QGraphicsOpacityEffect,
     QLabel,
     QListWidget,
     QListWidgetItem,
@@ -191,11 +192,18 @@ class MascotWidget(QLabel):
 
 
 class GlobalStatsWidget(QFrame):
-    """Pastel dashboard summarising overall log behaviour."""
+    """Dark-mode dashboard summarising overall log behaviour."""
 
     def __init__(self) -> None:
         super().__init__()
         self.setObjectName("GlobalStats")
+        self._fade_effect = QGraphicsOpacityEffect(self)
+        self.setGraphicsEffect(self._fade_effect)
+        self._fade_animation = QPropertyAnimation(self._fade_effect, b"opacity", self)
+        self._fade_animation.setDuration(400)
+        self._fade_animation.setStartValue(0.3)
+        self._fade_animation.setEndValue(1.0)
+        self._fade_animation.setEasingCurve(QEasingCurve.InOutCubic)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(16, 16, 16, 16)
         layout.setSpacing(10)
@@ -217,6 +225,9 @@ class GlobalStatsWidget(QFrame):
             layout.addWidget(label)
 
     def update_stats(self, stats: dict) -> None:
+        self._fade_animation.stop()
+        self._fade_effect.setOpacity(0.3)
+        self._fade_animation.start()
         if not stats:
             self.mean_duration.setText("Mean session duration: —")
             self.method_summary.setText("Request blend: —")
@@ -302,6 +313,13 @@ class SessionDetailWidget(QWidget):
 
     def __init__(self) -> None:
         super().__init__()
+        self._fade_effect = QGraphicsOpacityEffect(self)
+        self.setGraphicsEffect(self._fade_effect)
+        self._fade_animation = QPropertyAnimation(self._fade_effect, b"opacity", self)
+        self._fade_animation.setDuration(450)
+        self._fade_animation.setStartValue(0.0)
+        self._fade_animation.setEndValue(1.0)
+        self._fade_animation.setEasingCurve(QEasingCurve.InOutCubic)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 24, 24, 24)
         layout.setSpacing(16)
@@ -382,6 +400,8 @@ class SessionDetailWidget(QWidget):
 
     def display_session(self, processed: ProcessedSession) -> None:
         self._current_session = processed
+        self._fade_animation.stop()
+        self._fade_effect.setOpacity(0.0)
         payload = processed.payload
         self.session_label.setText(f"Session {payload['session_id']} ✦ IP {payload['ip']}")
 
@@ -420,6 +440,7 @@ class SessionDetailWidget(QWidget):
         raw_logs = "\n".join(payload.get("raw_logs", []))
         self.logs_view.setPlainText(raw_logs)
         self.markdown_view.setMarkdown(processed.markdown_report)
+        self._fade_animation.start()
 
     @staticmethod
     def _format_duration(seconds: float) -> str:
@@ -556,32 +577,56 @@ class KawaiiMainWindow(QMainWindow):
         self.setCentralWidget(central)
 
     def _apply_stylesheet(self) -> None:
-        palette = self.palette()
-        palette.setColor(QPalette.Window, Qt.white)
-        palette.setColor(QPalette.Base, Qt.white)
-        palette.setColor(QPalette.AlternateBase, Qt.white)
+        palette = QPalette()
+        deep_background = QColor("#101421")
+        surface = QColor("#1b2235")
+        card = QColor("#232d45")
+        accent = QColor("#5b8def")
+        text_primary = QColor("#edf1ff")
+
+        palette.setColor(QPalette.Window, deep_background)
+        palette.setColor(QPalette.WindowText, text_primary)
+        palette.setColor(QPalette.Base, surface)
+        palette.setColor(QPalette.AlternateBase, card)
+        palette.setColor(QPalette.Text, text_primary)
+        palette.setColor(QPalette.Button, card)
+        palette.setColor(QPalette.ButtonText, text_primary)
+        palette.setColor(QPalette.Highlight, accent)
+        palette.setColor(QPalette.HighlightedText, QColor("#0b101c"))
+        palette.setColor(QPalette.ToolTipBase, card)
+        palette.setColor(QPalette.ToolTipText, text_primary)
+        palette.setColor(QPalette.BrightText, QColor("#ff9ad6"))
         self.setPalette(palette)
 
         self.setStyleSheet(
             """
-            QMainWindow { background: #fff8fb; }
-            #MochiToolbar { background: #ffeaf5; border: 0; padding: 6px; spacing: 8px; }
-            #MochiToolbar QLabel { padding: 0 6px; font-weight: 600; }
-            #GlobalStats { background: #fff1f7; border-radius: 18px; border: 2px solid #ffd4ea; }
-            #GlobalStatLabel { font-size: 14px; }
-            #SessionCarousel { background: #fff; border-radius: 16px; padding: 12px; }
-            #SessionCarousel::item { background: #ffeef9; border-radius: 18px; padding: 14px; margin: 6px; }
-            #SessionCarousel::item:selected { background: #ffd9ef; border: 2px solid #ff8bcf; }
-            #SessionStatsCard { background: #ffeef9; border-radius: 20px; padding: 18px; }
-            #ScoreBar { border: 1px solid #ffb3d6; border-radius: 14px; text-align: center; }
-            #ScoreBar::chunk { background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #ffb7de, stop:1 #b0f3ff); border-radius: 12px; }
-            #AnalystNote { background: #fff; border-radius: 20px; padding: 18px; border: 2px dashed #ffe1f5; }
+            QMainWindow { background: #101421; color: #edf1ff; }
+            QStatusBar { background: #151c2d; color: #c0cae5; border-top: 1px solid #222d42; }
+            QToolBar#MochiToolbar { background: #151c2d; border: 0; padding: 6px; spacing: 12px; }
+            #MochiToolbar QLabel { padding: 0 6px; font-weight: 600; color: #9fb3df; }
+            QPushButton, QComboBox, QSpinBox { background: #232d45; border: 1px solid #2f3b58; color: #edf1ff; border-radius: 8px; padding: 6px 10px; }
+            QPushButton:hover, QComboBox:hover, QSpinBox:hover { border-color: #5b8def; }
+            QSlider::groove:horizontal { background: #232d45; height: 6px; border-radius: 3px; }
+            QSlider::handle:horizontal { background: #5b8def; width: 18px; margin: -6px 0; border-radius: 9px; }
+            QSlider::sub-page:horizontal { background: #5b8def; }
+            #GlobalStats { background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #1b2235, stop:1 #232d45); border-radius: 18px; border: 1px solid #2f3b58; }
+            #GlobalStatLabel, #GlobalStats QLabel { color: #c0cae5; }
+            #SessionCarousel { background: #151c2d; border-radius: 16px; padding: 12px; }
+            #SessionCarousel::item { background: #232d45; border-radius: 18px; padding: 14px; margin: 6px; color: #edf1ff; border: 1px solid #2f3b58; }
+            #SessionCarousel::item:selected { background: #2f3b58; border: 1px solid #5b8def; }
+            #SessionStatsCard { background: #1b2235; border-radius: 20px; padding: 18px; border: 1px solid #2f3b58; }
+            #ScoreBar { border: 1px solid #2f3b58; border-radius: 14px; text-align: center; background: #151c2d; color: #edf1ff; }
+            #ScoreBar::chunk { background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #5b8def, stop:1 #70c1ff); border-radius: 12px; }
+            #AnalystNote { background: #151c2d; border-radius: 20px; padding: 18px; border: 1px dashed #2f3b58; color: #c0cae5; }
             #SessionTabs::pane { border: 0; }
             #SessionTabs::tab-bar { left: 12px; }
-            #SessionTabs::tab { background: #ffd9ef; border-radius: 16px; padding: 8px 16px; margin-right: 8px; }
-            #SessionTabs::tab:selected { background: #ffb7de; color: #6d2c7d; }
-            #EvidenceView, #LogsView, #MarkdownView { background: #fff; border-radius: 16px; padding: 12px; border: 1px solid #ffd9ef; }
-            #TanukiMascot { padding: 0 12px; }
+            #SessionTabs::tab { background: #232d45; border-radius: 16px; padding: 8px 16px; margin-right: 8px; color: #c0cae5; border: 1px solid transparent; }
+            #SessionTabs::tab:selected { background: #2f3b58; color: #ffffff; border-color: #5b8def; }
+            QTextBrowser#EvidenceView, QTextBrowser#LogsView, QTextBrowser#MarkdownView { background: #151c2d; border-radius: 16px; padding: 12px; border: 1px solid #2f3b58; color: #edf1ff; }
+            QLabel#TanukiMascot { padding: 0 12px; color: #ffe6ff; }
+            QListWidget#SessionCarousel QScrollBar:vertical { background: #151c2d; width: 10px; }
+            QListWidget#SessionCarousel QScrollBar::handle:vertical { background: #2f3b58; border-radius: 5px; }
+            QListWidget#SessionCarousel QScrollBar::handle:vertical:hover { background: #5b8def; }
         """
         )
 
