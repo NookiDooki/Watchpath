@@ -11,7 +11,6 @@ from watchpath.parser import Session, SessionStatistics
 from watchpath.ui import (
     GlobalStatsWidget,
     PromptManagerPanel,
-    RecentAnalysesSidebar,
     SessionDetailWidget,
     SessionListWidget,
 )
@@ -100,60 +99,15 @@ def test_prompt_manager_override_signal(tmp_path, qt_app):
     assert captured and captured[0] == str(prompt_file)
 
 
-def test_session_detail_switches_timeline(qt_app):
+def test_session_detail_updates_views_and_kaomoji(qt_app):
     widget = SessionDetailWidget()
     processed = _build_processed("session-3")
-    processed.payload["records"] = [
-        {
-            "timestamp": "2024-01-01T00:00:00",
-            "method": "GET",
-            "path": "/",
-            "status": 200,
-            "size": 0,
-            "referrer": "",
-            "user_agent": "",
-        }
-    ]
-    widget.set_global_timeline([("2024-01-01T00:00:00", 1)])
+    processed.payload["analyst_note"] = "Check login sequence"
+    processed.payload["anomaly_score"] = 0.8
     widget.display_session(processed)
-    widget.timeline_source.setCurrentIndex(1)
-    assert widget.timeline_table.columnCount() == 2
 
-
-def test_recent_sidebar_emits_selected(qt_app):
-    sidebar = RecentAnalysesSidebar(capacity=2)
-    processed = _build_processed("session-4")
-    sidebar.add_session(processed)
-    item = sidebar.list_widget.item(0)
-    results = []
-    sidebar.sessionSelected.connect(lambda payload: results.append(payload))
-    sidebar._emit_selection(item)
-    assert results and isinstance(results[0], ProcessedSession)
-
-
-def test_recent_sidebar_metadata_and_actions(qt_app):
-    sidebar = RecentAnalysesSidebar(capacity=2)
-    processed = _build_processed("session-5")
-    processed.payload["summary"] = "Investigate spikes"
-    processed.payload["session_stats"]["method_counts"] = {"GET": 3, "POST": 1}
-    sidebar.add_session(processed)
-
-    item = sidebar.list_widget.item(0)
-    assert "IP" in item.text()
-    assert "Investigate spikes" in item.toolTip()
-
-    pinned = []
-    sidebar.sessionPinned.connect(lambda payload: pinned.append(payload))
-    sidebar._pin_item(item)
-    assert pinned and pinned[0] is processed
-    assert item.data(Qt.UserRole + 1) is True
-
-    compared = []
-    sidebar.compareRequested.connect(lambda payload: compared.append(payload))
-    sidebar._emit_compare(item)
-    assert compared and compared[0] is processed
-
-    detailed = []
-    sidebar.detailRequested.connect(lambda payload: detailed.append(payload))
-    sidebar._open_details(item)
-    assert detailed and detailed[0] is processed
+    assert "Check login sequence" in widget.note_display.toPlainText()
+    assert widget.evidence_view.toPlainText().strip() == "evidence"
+    assert "session-3" in widget.session_label.text()
+    assert "Critical" in widget.score_label.text()
+    assert "(´" in widget.kaomoji_label.text()
