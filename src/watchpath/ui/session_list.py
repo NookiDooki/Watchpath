@@ -520,7 +520,7 @@ class _SessionItemDelegate(QStyledItemDelegate):
 
     def _score_color(self, score: Optional[float], palette) -> QColor:
         if score is None:
-            return palette.window()
+            return palette.window().color()
         if score >= 0.75:
             return QColor(220, 76, 70)
         if score >= 0.4:
