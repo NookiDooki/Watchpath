@@ -11,13 +11,13 @@ from PySide6.QtCore import (
     QSettings,
     QSize,
     Qt,
+    QRect,
     Signal,
 )
 from PySide6.QtGui import (
     QColor,
     QFont,
     QKeySequence,
-    QLinearGradient,
     QPainter,
     QPen,
 )
@@ -38,7 +38,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from .severity import SeverityStyle, severity_for_score
+from .severity import SeverityStyle, coerce_score, severity_for_score
 
 
 @dataclass
@@ -47,7 +47,8 @@ class SessionListEntry:
     session_id: str
     ip: str
     methods: Iterable[str]
-    score: Optional[float]
+    score: float
+    score_available: bool
     payload: Dict[str, Any]
 
 
@@ -105,12 +106,15 @@ class SessionListWidget(QWidget):
         layout.addWidget(self.clear_filters, 0, 5)
 
         self.list_widget = QListView()
-        self.list_widget.setViewMode(QListView.IconMode)
+        self.list_widget.setViewMode(QListView.ListMode)
         self.list_widget.setResizeMode(QListView.Adjust)
         self.list_widget.setMovement(QListView.Static)
-        self.list_widget.setSpacing(14)
-        self.list_widget.setWrapping(True)
-        self.list_widget.setUniformItemSizes(False)
+        self.list_widget.setSpacing(6)
+        self.list_widget.setWrapping(False)
+        self.list_widget.setUniformItemSizes(True)
+        self.list_widget.setAlternatingRowColors(False)
+        self.list_widget.setSelectionRectVisible(False)
+        self.list_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.list_widget.setSelectionMode(QListView.ExtendedSelection)
         self.list_widget.setWordWrap(True)
         self.list_widget.setObjectName("SessionCarousel")
@@ -158,13 +162,17 @@ class SessionListWidget(QWidget):
         session_id = payload.get("session_id", "unknown")
         ip = payload.get("ip", "-")
         methods = payload.get("session_stats", {}).get("method_counts", {}).keys()
-        score = payload.get("anomaly_score")
+        raw_score = payload.get("anomaly_score")
+        score_value = coerce_score(raw_score)
+        score_available = score_value is not None
+        score = score_value if score_value is not None else 0.0
         entry = SessionListEntry(
             processed=processed,
             session_id=session_id,
             ip=ip,
             methods=list(methods),
             score=score,
+            score_available=score_available,
             payload=payload,
         )
         self._entries.append(entry)
@@ -225,8 +233,9 @@ class SessionListWidget(QWidget):
             _ensure(self.ip_filter, entry.ip, "IP")
         self._apply_pending_filter_values()
 
-    def _passes_score_filter(self, score: Optional[float]) -> bool:
+    def _passes_score_filter(self, entry: SessionListEntry) -> bool:
         index = self.score_filter.currentIndex()
+        score = entry.score if entry.score_available else None
         if index == 0:
             return True
         if index == 1:
@@ -236,7 +245,7 @@ class SessionListWidget(QWidget):
         if index == 3:
             return isinstance(score, (int, float)) and score < 0.4
         if index == 4:
-            return score is None
+            return not entry.score_available
         return True
 
     def _apply_filters(self) -> None:
@@ -252,7 +261,7 @@ class SessionListWidget(QWidget):
                 continue
             if ip_value and entry.ip != ip_value:
                 continue
-            if not self._passes_score_filter(entry.score):
+            if not self._passes_score_filter(entry):
                 continue
             self._filtered_entries.append(entry)
 
@@ -402,9 +411,10 @@ class _SessionListModel(QAbstractListModel):
             return None
         entry = self._entries[index.row()]
         if role == Qt.DisplayRole:
-            score_text = "Score: N/A"
-            if entry.score is not None:
-                score_text = f"Score: {entry.score:.2f}"
+            percent = max(0.0, min(entry.score * 100.0, 100.0))
+            score_text = f"Score: {percent:.0f}%"
+            if not entry.score_available:
+                score_text += " (pending)"
             methods = ", ".join(entry.methods) if entry.methods else "-"
             return f"{entry.session_id}\n{score_text}\nIP: {entry.ip}\nMethods: {methods}"
         if role == self.EntryRole:
@@ -464,8 +474,8 @@ class _SessionItemDelegate(QStyledItemDelegate):
     def sizeHint(self, option, index: QModelIndex) -> QSize:
         placeholder = bool(index.data(_SessionListModel.PlaceholderRole))
         if placeholder:
-            return QSize(260, 100)
-        return QSize(260, 140)
+            return QSize(360, 96)
+        return QSize(360, 88)
 
     def _paint_placeholder(self, painter: QPainter, option, rect, index: QModelIndex) -> None:
         palette = option.palette
@@ -480,48 +490,52 @@ class _SessionItemDelegate(QStyledItemDelegate):
         palette = option.palette
         severity = severity_for_score(entry.score)
         base_color = self._score_color(entry.score, severity, palette)
-        gradient = QLinearGradient(rect.topLeft(), rect.bottomRight())
-        gradient.setColorAt(0.0, base_color.lighter(110))
-        gradient.setColorAt(1.0, base_color.darker(110))
-        painter.setPen(Qt.NoPen)
-        painter.setBrush(gradient)
-        painter.drawRoundedRect(rect, 12, 12)
 
-        border_color = (
-            palette.highlight().color()
-            if option.state & QStyle.State_Selected
-            else base_color.darker(150)
-        )
-        pen = QPen(border_color, 2)
-        painter.setPen(pen)
-        painter.setBrush(Qt.NoBrush)
-        painter.drawRoundedRect(rect, 12, 12)
-
-        painter.setPen(palette.text().color())
-        text_rect = rect.adjusted(14, 14, -14, -14)
-        font = painter.font()
-        font.setPointSize(font.pointSize() + 2)
-        font.setBold(True)
-        painter.setFont(font)
-        title = f"{severity.emoji} {entry.session_id}"
-        painter.drawText(text_rect, Qt.AlignTop | Qt.TextWordWrap, title)
-
-        lines = []
-        if entry.score is not None:
-            percent = max(0.0, min(entry.score * 100.0, 100.0))
-            lines.append(f"Score: {percent:.0f}% ({severity.label})")
+        backdrop = QColor(base_color)
+        if backdrop.isValid():
+            backdrop.setAlpha(60)
         else:
-            lines.append("Score: N/A (Unknown)")
-        lines.append(f"IP: {entry.ip}")
-        if entry.methods:
-            lines.append("Methods: " + ", ".join(entry.methods))
+            backdrop = palette.window().color()
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(backdrop)
+        painter.drawRoundedRect(rect, 14, 14)
 
-        small_font = QFont(font)
-        small_font.setBold(False)
-        small_font.setPointSize(max(font.pointSize() - 2, 8))
-        painter.setFont(small_font)
-        info_rect = text_rect.adjusted(0, 32, 0, 0)
-        painter.drawText(info_rect, Qt.AlignTop | Qt.TextWordWrap, "\n".join(lines))
+        accent = QRect(rect.left(), rect.top(), 8, rect.height())
+        accent_color = QColor(base_color)
+        if accent_color.isValid():
+            accent_color.setAlpha(200)
+        painter.fillRect(accent, accent_color)
+
+        if option.state & QStyle.State_Selected:
+            overlay = QColor(palette.highlight().color())
+            overlay.setAlpha(90)
+            painter.setBrush(overlay)
+            painter.drawRoundedRect(rect, 14, 14)
+
+        content_rect = rect.adjusted(16, 12, -16, -12)
+        painter.setPen(palette.text().color())
+        title_font = painter.font()
+        title_font.setBold(True)
+        title_font.setPointSize(title_font.pointSize() + 1)
+        painter.setFont(title_font)
+        title = f"{severity.emoji} {entry.session_id}"
+        painter.drawText(content_rect, Qt.AlignTop | Qt.TextWordWrap, title)
+
+        percent = max(0.0, min(entry.score * 100.0, 100.0))
+        score_line = f"Score: {percent:.0f}% ({severity.label})"
+        if not entry.score_available:
+            score_line += " • awaiting model"
+
+        detail_lines = [score_line, f"IP: {entry.ip}"]
+        if entry.methods:
+            detail_lines.append("Methods: " + ", ".join(entry.methods))
+
+        info_font = QFont(title_font)
+        info_font.setBold(False)
+        info_font.setPointSize(max(title_font.pointSize() - 1, 8))
+        painter.setFont(info_font)
+        info_rect = content_rect.adjusted(0, 26, 0, 0)
+        painter.drawText(info_rect, Qt.AlignTop | Qt.TextWordWrap, "\n".join(detail_lines))
 
     def _score_color(
         self, score: Optional[float], severity: SeverityStyle, palette

@@ -26,8 +26,10 @@ from PySide6.QtWidgets import (
     QSplitter,
     QStatusBar,
     QToolBar,
+    QToolButton,
     QVBoxLayout,
     QWidget,
+    QSizePolicy,
 )
 
 from ..ai import SessionAnalysis, analyze_logs_ollama_chunk
@@ -246,6 +248,9 @@ class KawaiiMainWindow(QMainWindow):
         self._prompt_manager_dialog: QDialog | None = None
         self._prompt_manager_panel: PromptManagerPanel | None = None
 
+        self._toolbar: QToolBar | None = None
+        self._stop_button: QToolButton | None = None
+
         self._build_menus()
         self._build_toolbar()
         self._build_status_bar()
@@ -261,26 +266,44 @@ class KawaiiMainWindow(QMainWindow):
         toolbar = QToolBar("Controls")
         toolbar.setObjectName("MochiToolbar")
         toolbar.setMovable(False)
+        toolbar.setFloatable(False)
         self.addToolBar(toolbar)
+        self._toolbar = toolbar
 
-        open_action = QAction("Open log 🍡", self)
-        open_action.triggered.connect(self._choose_log_file)
-        toolbar.addAction(open_action)
+        def _make_button(label: str, emoji: str, handler) -> QToolButton:
+            button = QToolButton()
+            button.setObjectName("MochiToolbarButton")
+            button.setText(f"{emoji} {label}")
+            button.setCursor(Qt.PointingHandCursor)
+            button.setToolButtonStyle(Qt.ToolButtonTextOnly)
+            button.setAutoRaise(True)
+            button.clicked.connect(handler)
+            return button
 
-        rerun_action = QAction("Re-run with alternate parameters", self)
-        rerun_action.triggered.connect(self._prompt_rerun)
-        toolbar.addAction(rerun_action)
+        toolbar.addWidget(_make_button("Open log", "📂", self._choose_log_file))
+        toolbar.addWidget(
+            _make_button("Re-run with new parameters", "🔁", self._prompt_rerun)
+        )
 
-        stop_action = QAction("Stop analysis", self)
-        stop_action.triggered.connect(self._stop_worker)
-        toolbar.addAction(stop_action)
+        self._stop_button = _make_button("Stop analysis", "⏹️", self._stop_worker)
+        self._stop_button.setEnabled(False)
+        toolbar.addWidget(self._stop_button)
 
-        toolbar.addSeparator()
-        toolbar.addWidget(QLabel("Theme"))
+        spacer = QWidget()
+        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        toolbar.addWidget(spacer)
+
+        theme_label = QLabel("Theme")
+        theme_label.setObjectName("ToolbarLabel")
+        toolbar.addWidget(theme_label)
+
         self.theme_combo = QComboBox()
+        self.theme_combo.setObjectName("ThemeSelector")
         self.theme_combo.addItems(["dark", "light"])
         self.theme_combo.currentTextChanged.connect(self._apply_theme)
         toolbar.addWidget(self.theme_combo)
+
+        self._refresh_toolbar_theme()
 
     def _build_status_bar(self) -> None:
         status = QStatusBar()
@@ -322,6 +345,7 @@ class KawaiiMainWindow(QMainWindow):
 
         splitter.setStretchFactor(0, 2)
         splitter.setStretchFactor(1, 5)
+        splitter.setSizes([420, 880])
 
         self.setCentralWidget(central)
         self._apply_theme()
@@ -333,15 +357,110 @@ class KawaiiMainWindow(QMainWindow):
         if not app:
             return
         if theme == "light":
-            app.setStyleSheet(
-                "QMainWindow { background: #fdf9ff; color: #2d334a; }"
-                "QLabel { color: #2d334a; }"
-            )
+            base_bg = "#fdf9ff"
+            text = "#2d334a"
+            card_bg = "rgba(255, 255, 255, 0.92)"
+            border = "#d4c6ff"
+            tile_bg = "rgba(149, 117, 205, 0.18)"
         else:
-            app.setStyleSheet(
-                "QMainWindow { background: #101421; color: #edf1ff; }"
-                "QLabel { color: #edf1ff; }"
-            )
+            base_bg = "#101421"
+            text = "#edf1ff"
+            card_bg = "rgba(255, 255, 255, 0.06)"
+            border = "#3a466b"
+            tile_bg = "rgba(255, 255, 255, 0.09)"
+
+        app.setStyleSheet(
+            "QMainWindow {"
+            f" background: {base_bg};"
+            f" color: {text};"
+            "}"
+            "QLabel {"
+            f" color: {text};"
+            "}"
+            "QFrame#SessionStatsCard {"
+            f" background-color: {card_bg};"
+            " border-radius: 22px;"
+            f" border: 1px solid {border};"
+            "}"
+            "QFrame#GlobalStats {"
+            f" background-color: {card_bg};"
+            " border-radius: 20px;"
+            f" border: 1px solid {border};"
+            "}"
+            "QFrame#MetricTile {"
+            f" background-color: {tile_bg};"
+            " border-radius: 14px;"
+            "}"
+            "QLabel.MetricTileCaption {"
+            f" color: {text};"
+            "}")
+
+        self._refresh_toolbar_theme()
+
+    # ------------------------------------------------------------------
+    def _refresh_toolbar_theme(self) -> None:
+        if not self._toolbar:
+            return
+
+        theme = self.theme_combo.currentText() if hasattr(self, "theme_combo") else "dark"
+        if theme == "light":
+            bar_bg = "#f2ecff"
+            button_bg = "rgba(149, 117, 205, 0.18)"
+            button_hover = "rgba(149, 117, 205, 0.3)"
+            text_color = "#2d2240"
+            accent = "#ab47bc"
+        else:
+            bar_bg = "#171d2b"
+            button_bg = "rgba(255, 255, 255, 0.08)"
+            button_hover = "rgba(255, 255, 255, 0.18)"
+            text_color = "#f7f8ff"
+            accent = "#f48fb1"
+
+        toolbar_style = (
+            "QToolBar#MochiToolbar {"
+            f" background: {bar_bg};"
+            " border: none;"
+            " padding: 6px 12px;"
+            "}"
+            "QToolBar#MochiToolbar QLabel#ToolbarLabel {"
+            f" color: {text_color};"
+            " font-weight: 600;"
+            " margin-right: 6px;"
+            "}"
+            "QToolBar#MochiToolbar QToolButton#MochiToolbarButton {"
+            f" background: {button_bg};"
+            f" color: {text_color};"
+            " border-radius: 18px;"
+            " padding: 6px 14px;"
+            " font-weight: 600;"
+            "}"
+            "QToolBar#MochiToolbar QToolButton#MochiToolbarButton:hover {"
+            f" background: {button_hover};"
+            "}"
+            "QToolBar#MochiToolbar QToolButton#MochiToolbarButton:pressed {"
+            f" background: {button_hover};"
+            " opacity: 0.9;"
+            "}"
+            "QComboBox#ThemeSelector {"
+            f" background: {button_bg};"
+            f" color: {text_color};"
+            f" border: 1px solid {accent};"
+            " border-radius: 16px;"
+            " padding: 4px 12px;"
+            " min-width: 100px;"
+            " font-weight: 600;"
+            "}"
+            "QComboBox#ThemeSelector::drop-down { border: 0px; }"
+        )
+        self._toolbar.setStyleSheet(toolbar_style)
+
+        if hasattr(self, "theme_combo"):
+            self.theme_combo.setStyleSheet("")
+
+    # ------------------------------------------------------------------
+    def _refresh_toolbar_state(self) -> None:
+        if self._stop_button is not None:
+            self._stop_button.setEnabled(self._worker is not None)
 
     # ------------------------------------------------------------------
     def _choose_log_file(self) -> None:
@@ -389,6 +508,7 @@ class KawaiiMainWindow(QMainWindow):
         self._worker.global_stats_ready.connect(self._update_global_stats)
         self._worker.finished.connect(self._on_worker_finished)
         self._thread.start()
+        self._refresh_toolbar_state()
 
     def _update_progress(self, index: int, total: int) -> None:
         self.progress.setMaximum(total)
@@ -401,6 +521,7 @@ class KawaiiMainWindow(QMainWindow):
             self._thread.wait()
             self._thread = None
         self._worker = None
+        self._refresh_toolbar_state()
 
     def _show_error(self, message: str) -> None:
         QMessageBox.critical(self, "Analysis error", message)
@@ -414,6 +535,7 @@ class KawaiiMainWindow(QMainWindow):
         self._worker = None
         self._thread = None
         self.progress.setVisible(False)
+        self._refresh_toolbar_state()
 
     # ------------------------------------------------------------------
     def _update_global_stats(self, stats: dict) -> None:

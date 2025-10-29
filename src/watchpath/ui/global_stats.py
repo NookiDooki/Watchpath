@@ -27,6 +27,7 @@ from PySide6.QtWidgets import (
     QToolButton,
     QToolTip,
     QVBoxLayout,
+    QSizePolicy,
 )
 
 
@@ -38,6 +39,7 @@ class GlobalStatsWidget(QFrame):
     def __init__(self) -> None:
         super().__init__()
         self.setObjectName("GlobalStats")
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self._stats: Dict[str, object] = {}
         self._timeline_lookup: Dict[int, Tuple[str, int]] = {}
         self._timeline_series: QLineSeries | None = None
@@ -106,11 +108,18 @@ class GlobalStatsWidget(QFrame):
         self.chart_stack.addWidget(self.chart_placeholder)
         self.chart_stack.addWidget(self.chart_view)
 
+        self.chart_frame.setMinimumHeight(220)
+        self.chart_frame.setMaximumHeight(320)
+        self.chart_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.chart_view.setMinimumHeight(220)
+        self.chart_placeholder.setMinimumHeight(220)
         layout.addWidget(self.chart_frame, 1)
 
         self.footer = QLabel("Hover a data point to explore details.")
         self.footer.setWordWrap(True)
         layout.addWidget(self.footer)
+
+        self.setMaximumHeight(420)
 
         # Initialize with the default mode selected.
         self._set_mode(self._active_mode)
@@ -352,6 +361,7 @@ class GlobalStatsWidget(QFrame):
     # ------------------------------------------------------------------
     def _build_metric_tile(self, title: str, value: str) -> Tuple[QFrame, QLabel]:
         tile = QFrame()
+        tile.setObjectName("MetricTile")
         tile_layout = QVBoxLayout(tile)
         tile_layout.setContentsMargins(12, 12, 12, 12)
         tile_layout.setSpacing(4)
