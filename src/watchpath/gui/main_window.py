@@ -41,13 +41,7 @@ from ..parser import (
     load_sessions,
     summarize_sessions,
 )
-from ..ui import (
-    GlobalStatsWidget,
-    PromptManagerPanel,
-    RecentAnalysesSidebar,
-    SessionDetailWidget,
-    SessionListWidget,
-)
+from ..ui import GlobalStatsWidget, PromptManagerPanel, SessionDetailWidget, SessionListWidget
 
 DEFAULT_PROMPT_PATH = Path("prompts/base_prompt.txt")
 
@@ -241,7 +235,6 @@ class KawaiiMainWindow(QMainWindow):
         self._worker: Optional[AnalysisWorker] = None
 
         self._processed_sessions: list[ProcessedSession] = []
-        self._session_notes: dict[str, object] = {}
         self._session_overrides: dict[str, Path] = {}
         self._last_log_path: Optional[Path] = None
         self._last_global_stats: dict = {}
@@ -250,9 +243,18 @@ class KawaiiMainWindow(QMainWindow):
         self._default_model = default_model
         self._default_chunk_size = default_chunk_size
 
+        self._prompt_manager_dialog: QDialog | None = None
+        self._prompt_manager_panel: PromptManagerPanel | None = None
+
+        self._build_menus()
         self._build_toolbar()
         self._build_status_bar()
         self._build_layout()
+
+    def _build_menus(self) -> None:
+        menu = self.menuBar().addMenu("Tools")
+        manager_action = menu.addAction("Model manager…")
+        manager_action.triggered.connect(self._open_model_manager)
 
     # ------------------------------------------------------------------
     def _build_toolbar(self) -> None:
@@ -316,27 +318,10 @@ class KawaiiMainWindow(QMainWindow):
         splitter.addWidget(left_panel)
 
         self.detail_widget = SessionDetailWidget()
-        self.detail_widget.noteUpdated.connect(self._on_note_updated)
         splitter.addWidget(self.detail_widget)
 
-        right_panel = QWidget()
-        right_layout = QVBoxLayout(right_panel)
-        right_layout.setContentsMargins(0, 0, 0, 0)
-        right_layout.setSpacing(8)
-
-        right_layout.addWidget(QLabel("Recent analyses"))
-        self.recent_sidebar = RecentAnalysesSidebar()
-        self.recent_sidebar.sessionSelected.connect(self._on_session_activated)
-        right_layout.addWidget(self.recent_sidebar, 1)
-
-        self.prompt_manager = PromptManagerPanel()
-        self.prompt_manager.overrideRequested.connect(self._apply_prompt_override)
-        right_layout.addWidget(self.prompt_manager, 2)
-
-        splitter.addWidget(right_panel)
         splitter.setStretchFactor(0, 2)
-        splitter.setStretchFactor(1, 4)
-        splitter.setStretchFactor(2, 1)
+        splitter.setStretchFactor(1, 5)
 
         self.setCentralWidget(central)
         self._apply_theme()
@@ -373,9 +358,7 @@ class KawaiiMainWindow(QMainWindow):
         self._last_log_path = path
         self.session_list.clear()
         self.detail_widget.clear()
-        self.recent_sidebar.list_widget.clear()
         self._processed_sessions.clear()
-        self._session_notes.clear()
         self._session_overrides.clear()
         self._start_worker(
             log_path=path,
@@ -436,7 +419,6 @@ class KawaiiMainWindow(QMainWindow):
     def _update_global_stats(self, stats: dict) -> None:
         self._last_global_stats = stats
         self.global_stats.update_stats(stats)
-        self.detail_widget.set_global_timeline(stats.get("request_timeline", []))
 
     def _add_processed_session(self, processed: ProcessedSession) -> None:
         self._processed_sessions.append(processed)
@@ -444,7 +426,6 @@ class KawaiiMainWindow(QMainWindow):
         if override:
             processed.payload["override_prompt_path"] = str(override)
         self.session_list.add_session(processed)
-        self.recent_sidebar.add_session(processed)
         if len(self._processed_sessions) == 1:
             self._on_session_activated(processed)
 
@@ -494,10 +475,6 @@ class KawaiiMainWindow(QMainWindow):
         else:
             self.detail_widget.clear()
 
-    def _on_note_updated(self, session_id: str, state: object) -> None:
-        self._session_notes[session_id] = state
-
-    # ------------------------------------------------------------------
     def _prompt_rerun(self) -> None:
         if not self._last_log_path:
             QMessageBox.information(self, "Re-run analysis", "Load a log file first.")
@@ -577,13 +554,36 @@ class KawaiiMainWindow(QMainWindow):
                         if existing.session.session_id == updated.session.session_id:
                             self._processed_sessions[index] = updated
                             break
-                    self.recent_sidebar.add_session(updated)
             if replacements:
                 self._session_overrides[replacements[-1].session.session_id] = override_path
                 self._refresh_session_list()
                 self._on_session_activated(replacements[-1])
         finally:
             QApplication.restoreOverrideCursor()
+
+    # ------------------------------------------------------------------
+    def _open_model_manager(self) -> None:
+        if self._prompt_manager_dialog is None:
+            dialog = QDialog(self)
+            dialog.setWindowTitle("Model manager")
+            dialog.resize(420, 560)
+            layout = QVBoxLayout(dialog)
+            panel = PromptManagerPanel()
+            panel.overrideRequested.connect(self._apply_prompt_override)
+            layout.addWidget(panel)
+            buttons = QDialogButtonBox(QDialogButtonBox.Close)
+            buttons.rejected.connect(dialog.reject)
+            close_button = buttons.button(QDialogButtonBox.Close)
+            if close_button is not None:
+                close_button.setText("Close")
+            layout.addWidget(buttons)
+            self._prompt_manager_dialog = dialog
+            self._prompt_manager_panel = panel
+        if self._prompt_manager_panel is not None:
+            self._prompt_manager_panel.reload()
+        self._prompt_manager_dialog.show()
+        self._prompt_manager_dialog.raise_()
+        self._prompt_manager_dialog.activateWindow()
 
     # ------------------------------------------------------------------
     def dragEnterEvent(self, event) -> None:  # pragma: no cover - Qt callback
