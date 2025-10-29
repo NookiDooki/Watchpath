@@ -14,6 +14,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from .severity import coerce_score, severity_for_score
+
 
 _PIN_ROLE = Qt.UserRole + 1
 
@@ -54,8 +56,14 @@ class RecentAnalysesSidebar(QWidget):
 
     def _format_entry(self, payload: dict) -> str:
         session_id = payload.get("session_id", "—")
-        score = payload.get("anomaly_score")
-        score_text = f"{score:.2f}" if isinstance(score, (int, float)) else "N/A"
+        raw_score = payload.get("anomaly_score")
+        score_value = coerce_score(raw_score)
+        score = score_value if score_value is not None else 0.0
+        style = severity_for_score(score)
+        if score_value is None:
+            score_text = "0.00"
+        else:
+            score_text = f"{score:.2f}"
         ip = payload.get("ip", "?")
         stats = payload.get("session_stats") or {}
         request_count = stats.get("request_count")
@@ -64,7 +72,14 @@ class RecentAnalysesSidebar(QWidget):
         duration_text = (
             f"{duration:.0f}s duration" if isinstance(duration, (int, float)) else "Duration: N/A"
         )
-        return f"{session_id} • Score {score_text}\nIP {ip} • {request_text} • {duration_text}"
+        label = "Score"
+        if score_value is None:
+            label = "Score (pending)"
+        return (
+            f"{session_id} • {label} {score_text}"
+            f"\nIP {ip} • {request_text} • {duration_text}"
+            f" • {style.label}"
+        )
 
     def _build_tooltip(self, payload: dict) -> str:
         parts: list[str] = []

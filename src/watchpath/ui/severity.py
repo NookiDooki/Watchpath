@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Optional
 
 
 @dataclass(frozen=True)
@@ -66,6 +66,47 @@ _TOTAL_STYLE = SeverityStyle(
 )
 
 
+def coerce_score(value: Any) -> Optional[float]:
+    """Return ``value`` as a normalised score between 0 and 1.
+
+    Strings containing percentages (for example ``"42%"``) are converted to
+    their fractional representation. Values greater than ``1`` are assumed to be
+    expressed as percentages and are scaled down accordingly. Invalid entries
+    return ``None``.
+    """
+
+    if value is None:
+        return None
+
+    if isinstance(value, bool):
+        return float(value)
+
+    if isinstance(value, str):
+        cleaned = value.strip()
+        if not cleaned:
+            return None
+        if cleaned.endswith("%"):
+            cleaned = cleaned.rstrip("% ")
+            try:
+                numeric = float(cleaned)
+            except ValueError:
+                return None
+            return max(0.0, min(numeric / 100.0, 1.0))
+        try:
+            numeric = float(cleaned)
+        except ValueError:
+            return None
+        value = numeric
+
+    if isinstance(value, (int, float)):
+        numeric = float(value)
+        if numeric > 1.0:
+            numeric /= 100.0
+        return max(0.0, min(numeric, 1.0))
+
+    return None
+
+
 def severity_for_score(score: Optional[float]) -> SeverityStyle:
     """Return the presentation style that matches the anomaly score."""
 
@@ -90,3 +131,11 @@ def severity_label(score: Optional[float]) -> str:
     """Return a human readable label for the anomaly score."""
 
     return severity_for_score(score).label
+
+
+__all__ = [
+    "SeverityStyle",
+    "coerce_score",
+    "severity_for_score",
+    "severity_label",
+]
