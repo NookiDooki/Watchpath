@@ -38,6 +38,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from .severity import SeverityStyle, severity_for_score
+
 
 @dataclass
 class SessionListEntry:
@@ -476,7 +478,8 @@ class _SessionItemDelegate(QStyledItemDelegate):
 
     def _paint_entry(self, painter: QPainter, option, rect, entry: SessionListEntry) -> None:
         palette = option.palette
-        base_color = self._score_color(entry.score, palette)
+        severity = severity_for_score(entry.score)
+        base_color = self._score_color(entry.score, severity, palette)
         gradient = QLinearGradient(rect.topLeft(), rect.bottomRight())
         gradient.setColorAt(0.0, base_color.lighter(110))
         gradient.setColorAt(1.0, base_color.darker(110))
@@ -500,13 +503,15 @@ class _SessionItemDelegate(QStyledItemDelegate):
         font.setPointSize(font.pointSize() + 2)
         font.setBold(True)
         painter.setFont(font)
-        painter.drawText(text_rect, Qt.AlignTop | Qt.TextWordWrap, entry.session_id)
+        title = f"{severity.emoji} {entry.session_id}"
+        painter.drawText(text_rect, Qt.AlignTop | Qt.TextWordWrap, title)
 
         lines = []
         if entry.score is not None:
-            lines.append(f"Score: {entry.score:.2f}")
+            percent = max(0.0, min(entry.score * 100.0, 100.0))
+            lines.append(f"Score: {percent:.0f}% ({severity.label})")
         else:
-            lines.append("Score: N/A")
+            lines.append("Score: N/A (Unknown)")
         lines.append(f"IP: {entry.ip}")
         if entry.methods:
             lines.append("Methods: " + ", ".join(entry.methods))
@@ -518,11 +523,12 @@ class _SessionItemDelegate(QStyledItemDelegate):
         info_rect = text_rect.adjusted(0, 32, 0, 0)
         painter.drawText(info_rect, Qt.AlignTop | Qt.TextWordWrap, "\n".join(lines))
 
-    def _score_color(self, score: Optional[float], palette) -> QColor:
+    def _score_color(
+        self, score: Optional[float], severity: SeverityStyle, palette
+    ) -> QColor:
         if score is None:
             return palette.window().color()
-        if score >= 0.75:
-            return QColor(220, 76, 70)
-        if score >= 0.4:
-            return QColor(242, 178, 73)
-        return QColor(88, 173, 106)
+        color = QColor(severity.color)
+        if not color.isValid():
+            return palette.window().color()
+        return color
