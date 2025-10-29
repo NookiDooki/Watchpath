@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from math import isfinite
 from typing import Dict, Iterable, Tuple
 
 from PySide6.QtCharts import (
@@ -256,17 +257,31 @@ class GlobalStatsWidget(QFrame):
         chart.setAnimationOptions(QChart.SeriesAnimations)
 
         series = QLineSeries()
-        timeline: Iterable[Tuple[str, int]] = self._stats.get("request_timeline", []) or []
+        raw_timeline: Iterable[Tuple[str, int]] = (
+            self._stats.get("request_timeline", []) or []
+        )
+        timeline: list[Tuple[str, int]] = list(raw_timeline)
         self._timeline_lookup.clear()
         timestamps: list[QDateTime] = []
+        counts: list[float] = []
+        valid_timestamps: list[str] = []
         for timestamp, count in timeline:
+            try:
+                numeric_count = float(count)
+            except (TypeError, ValueError):
+                continue
+            if not isfinite(numeric_count):
+                continue
             dt = self._parse_timestamp(timestamp)
             if dt is None:
                 continue
             msecs = dt.toMSecsSinceEpoch()
-            series.append(float(msecs), float(count))
-            self._timeline_lookup[int(msecs)] = (timestamp, count)
+            series.append(float(msecs), numeric_count)
+            discrete_count = int(round(numeric_count))
+            self._timeline_lookup[int(msecs)] = (timestamp, discrete_count)
             timestamps.append(dt)
+            counts.append(numeric_count)
+            valid_timestamps.append(timestamp)
         chart.addSeries(series)
 
         axis_x = QDateTimeAxis()
@@ -279,12 +294,17 @@ class GlobalStatsWidget(QFrame):
 
         axis_y = QValueAxis()
         axis_y.setTitleText("Requests per bucket")
+        if counts:
+            max_count = max(counts)
+            axis_y.setRange(0, max_count if max_count > 0 else 1)
+        else:
+            axis_y.setRange(0, 1)
         axis_y.applyNiceNumbers()
         chart.addAxis(axis_y, Qt.AlignLeft)
         series.attachAxis(axis_y)
 
-        if timeline and timestamps:
-            start, end = timeline[0][0], timeline[-1][0]
+        if counts and timestamps:
+            start, end = valid_timestamps[0], valid_timestamps[-1]
             self.footer.setText(
                 f"Activity spans from {start} to {end}. Hover to inspect density."
             )
