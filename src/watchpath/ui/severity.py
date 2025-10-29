@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Any, Optional
 
@@ -85,6 +86,17 @@ def coerce_score(value: Any) -> Optional[float]:
         cleaned = value.strip()
         if not cleaned:
             return None
+        label = re.sub(r"[^a-z]", "", cleaned.lower())
+        severity_aliases = {
+            "serene": 0.0,
+            "playful": 0.2,
+            "alert": 0.45,
+            "tense": 0.65,
+            "alarmed": 0.85,
+            "catastrophic": 1.0,
+        }
+        if label in severity_aliases:
+            return severity_aliases[label]
         if cleaned.endswith("%"):
             cleaned = cleaned.rstrip("% ")
             try:
