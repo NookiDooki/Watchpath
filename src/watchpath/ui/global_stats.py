@@ -2,21 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-from math import isfinite
-from typing import Dict, Iterable, Tuple
+from typing import Dict, Tuple
 
-from PySide6.QtCharts import (
-    QBarCategoryAxis,
-    QBarSeries,
-    QBarSet,
-    QChart,
-    QChartView,
-    QDateTimeAxis,
-    QLineSeries,
-    QValueAxis,
-)
-from PySide6.QtCore import QDateTime, QPointF, Qt, Signal
+from PySide6.QtCharts import QBarCategoryAxis, QBarSeries, QBarSet, QChart, QChartView, QValueAxis
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QFont, QPainter
 from PySide6.QtWidgets import (
     QButtonGroup,
@@ -25,7 +14,6 @@ from PySide6.QtWidgets import (
     QLabel,
     QStackedLayout,
     QToolButton,
-    QToolTip,
     QVBoxLayout,
     QSizePolicy,
 )
@@ -41,8 +29,6 @@ class GlobalStatsWidget(QFrame):
         self.setObjectName("GlobalStats")
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self._stats: Dict[str, object] = {}
-        self._timeline_lookup: Dict[int, Tuple[str, int]] = {}
-        self._timeline_series: QLineSeries | None = None
         self._active_mode = "Overview"
 
         layout = QVBoxLayout(self)
@@ -66,7 +52,7 @@ class GlobalStatsWidget(QFrame):
         self.mode_group.setExclusive(True)
         chips_layout = QHBoxLayout()
         chips_layout.setSpacing(4)
-        for mode in ("Overview", "Status codes", "Traffic timeline"):
+        for mode in ("Overview", "Status codes"):
             button = QToolButton()
             button.setText(mode)
             button.setCheckable(True)
@@ -166,8 +152,6 @@ class GlobalStatsWidget(QFrame):
 
         if mode == "Status codes":
             self._render_status_distribution()
-        elif mode == "Traffic timeline":
-            self._render_timeline()
         else:
             self._render_overview()
 
@@ -259,106 +243,6 @@ class GlobalStatsWidget(QFrame):
             bar_set.clicked.connect(self._emit_status_activation)  # type: ignore[attr-defined]
             self._display_chart(chart)
 
-    def _render_timeline(self) -> None:
-        chart = QChart()
-        chart.setTitle("Request timeline")
-        chart.legend().setVisible(False)
-        chart.setAnimationOptions(QChart.SeriesAnimations)
-
-        series = QLineSeries()
-        raw_timeline: Iterable[Tuple[str, int]] = (
-            self._stats.get("request_timeline", []) or []
-        )
-        self._timeline_lookup.clear()
-        sanitized_points: list[tuple[int, QDateTime, float, str, int]] = []
-        dropped_points = 0
-        for entry in raw_timeline:
-            if not isinstance(entry, (tuple, list)) or len(entry) != 2:
-                dropped_points += 1
-                continue
-            timestamp, count = entry
-            try:
-                numeric_count = float(count)
-            except (TypeError, ValueError):
-                dropped_points += 1
-                continue
-            if not isfinite(numeric_count) or numeric_count < 0:
-                dropped_points += 1
-                continue
-            dt = self._parse_timestamp(str(timestamp))
-            if dt is None:
-                dropped_points += 1
-                continue
-            msecs = int(dt.toMSecsSinceEpoch())
-            sanitized_points.append(
-                (msecs, dt, numeric_count, str(timestamp), int(round(numeric_count)))
-            )
-
-        if not sanitized_points:
-            if raw_timeline:
-                self.footer.setText(
-                    "Timeline data could not be visualised due to invalid entries."
-                )
-                self._show_placeholder("Timeline data contains unsupported values.")
-            else:
-                self.footer.setText("Timeline will populate once traffic is analysed.")
-                self._show_placeholder("Timeline will populate once traffic is analysed.")
-            self._timeline_series = None
-            return
-
-        sanitized_points.sort(key=lambda item: item[0])
-
-        timestamps: list[QDateTime] = []
-        counts: list[float] = []
-        valid_timestamps: list[str] = []
-        for msecs, dt, numeric_count, timestamp, discrete_count in sanitized_points:
-            series.append(float(msecs), numeric_count)
-            self._timeline_lookup[msecs] = (timestamp, discrete_count)
-            timestamps.append(dt)
-            counts.append(numeric_count)
-            valid_timestamps.append(timestamp)
-
-        chart.addSeries(series)
-
-        axis_x = QDateTimeAxis()
-        axis_x.setTitleText("Timeline")
-        axis_x.setFormat("yyyy-MM-dd HH:mm")
-        if timestamps:
-            axis_x.setRange(timestamps[0], timestamps[-1])
-        chart.addAxis(axis_x, Qt.AlignBottom)
-        series.attachAxis(axis_x)
-
-        axis_y = QValueAxis()
-        axis_y.setTitleText("Requests per bucket")
-        if counts:
-            max_count = max(counts)
-            if not isfinite(max_count) or max_count <= 0:
-                axis_y.setRange(0, 1)
-            else:
-                axis_y.setRange(0, max_count)
-        else:
-            axis_y.setRange(0, 1)
-        axis_y.applyNiceNumbers()
-        chart.addAxis(axis_y, Qt.AlignLeft)
-        series.attachAxis(axis_y)
-
-        if counts and timestamps:
-            start, end = valid_timestamps[0], valid_timestamps[-1]
-            message = f"Activity spans from {start} to {end}. Hover to inspect density."
-            if dropped_points:
-                plural = "s" if dropped_points != 1 else ""
-                message += f" (Ignored {dropped_points} invalid bucket{plural}.)"
-            self.footer.setText(message)
-            self._timeline_series = series
-            series.hovered.connect(self._show_timeline_tooltip)
-            series.pointClicked.connect(self._emit_timeline_activation)
-            self._display_chart(chart)
-        else:
-            self.footer.setText("Timeline will populate once traffic is analysed.")
-            self._show_placeholder("Timeline will populate once traffic is analysed.")
-            self._timeline_series = None
-
-    # ------------------------------------------------------------------
     def _build_metric_tile(self, title: str, value: str) -> Tuple[QFrame, QLabel]:
         tile = QFrame()
         tile.setObjectName("MetricTile")
@@ -409,40 +293,6 @@ class GlobalStatsWidget(QFrame):
     def _show_placeholder(self, message: str) -> None:
         self.chart_placeholder.setText(message)
         self.chart_stack.setCurrentWidget(self.chart_placeholder)
-
-    def _parse_timestamp(self, timestamp: str) -> QDateTime | None:
-        try:
-            cleaned = timestamp.replace("Z", "+00:00") if timestamp.endswith("Z") else timestamp
-            dt_obj = datetime.fromisoformat(cleaned)
-        except ValueError:
-            return None
-        if dt_obj.tzinfo is None:
-            dt_obj = dt_obj.replace(tzinfo=datetime.now().astimezone().tzinfo)
-        return QDateTime(dt_obj)
-
-    def _show_timeline_tooltip(self, point: QPointF, state: bool) -> None:
-        if not state:
-            QToolTip.hideText()
-            return
-
-        lookup_key = int(round(point.x()))
-        bucket = self._timeline_lookup.get(lookup_key)
-        if not bucket:
-            return
-
-        timestamp, count = bucket
-        chart = self.chart_view.chart()
-        series = getattr(self, "_timeline_series", None)
-        position = chart.mapToPosition(point, series) if series is not None else chart.mapToPosition(point)
-        global_pos = self.chart_view.mapToGlobal(position.toPoint())
-        QToolTip.showText(global_pos, f"{timestamp}\nRequests: {count}", self.chart_view)
-
-    def _emit_timeline_activation(self, point: QPointF) -> None:
-        lookup_key = int(round(point.x()))
-        bucket = self._timeline_lookup.get(lookup_key)
-        if bucket:
-            timestamp, _ = bucket
-            self.dataPointActivated.emit(timestamp)
 
     def _emit_status_activation(self, index: int) -> None:
         status_distribution: Dict[int, int] = dict(
