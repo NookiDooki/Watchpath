@@ -123,6 +123,18 @@ class SessionDetailWidget(QWidget):
 
     noteUpdated = Signal(str, object)
 
+    # Widgets created during initialisation. Declared up-front for clarity and to
+    # guard against attribute-order regressions when the layout is refactored.
+    evidence_view: SearchableTextBrowser
+    logs_view: SearchableTextBrowser
+    markdown_view: SearchableTextBrowser
+    evidence_search: QLineEdit
+    evidence_prev: QToolButton
+    evidence_next: QToolButton
+    logs_search: QLineEdit
+    logs_prev: QToolButton
+    logs_next: QToolButton
+
     def __init__(self) -> None:
         super().__init__()
         self._current_session: Optional[Any] = None
@@ -217,57 +229,27 @@ class SessionDetailWidget(QWidget):
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.setSpacing(8)
 
-        self.evidence_view = SearchableTextBrowser()
-        self.evidence_view.setObjectName("EvidenceView")
-        self.logs_view = SearchableTextBrowser()
-        self.logs_view.setObjectName("LogsView")
-        self.markdown_view = SearchableTextBrowser()
-        self.markdown_view.setObjectName("MarkdownView")
+        self.evidence_view = self._create_browser("EvidenceView")
+        self.logs_view = self._create_browser("LogsView")
+        self.markdown_view = self._create_browser("MarkdownView")
 
         search_row = QHBoxLayout()
         search_row.setSpacing(6)
-        self.evidence_search = QLineEdit()
-        self.evidence_search.setPlaceholderText("Search evidence…")
-        self.evidence_search.textChanged.connect(
-            lambda text: self._on_search_changed(
-                self.evidence_view,
-                self.evidence_prev,
-                self.evidence_next,
-                text,
-            )
-        )
-        self.evidence_prev = QToolButton()
-        self.evidence_prev.setText("‹")
-        self.evidence_prev.setEnabled(False)
-        self.evidence_prev.clicked.connect(self.evidence_view.previous_highlight)
-        self.evidence_next = QToolButton()
-        self.evidence_next.setText("›")
-        self.evidence_next.setEnabled(False)
-        self.evidence_next.clicked.connect(self.evidence_view.next_highlight)
-        search_row.addWidget(self.evidence_search)
-        search_row.addWidget(self.evidence_prev)
-        search_row.addWidget(self.evidence_next)
-        self.logs_search = QLineEdit()
-        self.logs_search.setPlaceholderText("Search logs…")
-        self.logs_search.textChanged.connect(
-            lambda text: self._on_search_changed(
-                self.logs_view,
-                self.logs_prev,
-                self.logs_next,
-                text,
-            )
-        )
-        self.logs_prev = QToolButton()
-        self.logs_prev.setText("‹")
-        self.logs_prev.setEnabled(False)
-        self.logs_prev.clicked.connect(self.logs_view.previous_highlight)
-        self.logs_next = QToolButton()
-        self.logs_next.setText("›")
-        self.logs_next.setEnabled(False)
-        self.logs_next.clicked.connect(self.logs_view.next_highlight)
-        search_row.addWidget(self.logs_search)
-        search_row.addWidget(self.logs_prev)
-        search_row.addWidget(self.logs_next)
+        (
+            self.evidence_search,
+            self.evidence_prev,
+            self.evidence_next,
+        ) = self._create_search_controls("Search evidence…", self.evidence_view)
+        for widget in (self.evidence_search, self.evidence_prev, self.evidence_next):
+            search_row.addWidget(widget)
+
+        (
+            self.logs_search,
+            self.logs_prev,
+            self.logs_next,
+        ) = self._create_search_controls("Search logs…", self.logs_view)
+        for widget in (self.logs_search, self.logs_prev, self.logs_next):
+            search_row.addWidget(widget)
         left_layout.addLayout(search_row)
 
         self.tabs = QTabWidget()
@@ -729,6 +711,33 @@ class SessionDetailWidget(QWidget):
         tab_index = self._settings.value("currentTab", 0, int)
         if isinstance(tab_index, int) and 0 <= tab_index < self.tabs.count():
             self.tabs.setCurrentIndex(tab_index)
+
+    def _create_browser(self, object_name: str) -> SearchableTextBrowser:
+        browser = SearchableTextBrowser()
+        browser.setObjectName(object_name)
+        return browser
+
+    def _create_search_controls(
+        self, placeholder: str, view: SearchableTextBrowser
+    ) -> tuple[QLineEdit, QToolButton, QToolButton]:
+        search = QLineEdit()
+        search.setPlaceholderText(placeholder)
+
+        prev_button = QToolButton()
+        prev_button.setText("‹")
+        prev_button.setEnabled(False)
+        prev_button.clicked.connect(view.previous_highlight)
+
+        next_button = QToolButton()
+        next_button.setText("›")
+        next_button.setEnabled(False)
+        next_button.clicked.connect(view.next_highlight)
+
+        search.textChanged.connect(
+            lambda text: self._on_search_changed(view, prev_button, next_button, text)
+        )
+
+        return search, prev_button, next_button
 
     def _build_export_controls(
         self, label: str, widget: Optional[QTextBrowser], *, rich: bool = False
