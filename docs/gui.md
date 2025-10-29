@@ -2,8 +2,9 @@
 
 The Watchpath desktop application wraps the same log-analysis pipeline as the CLI with a playful
 PySide6 (Qt) interface. Launch it with `watchpath gui` or by calling
-[`watchpath.gui.launch_gui`](../src/watchpath/gui/__init__.py) from your own code. The main window is
-implemented in [`watchpath/gui/app.py`](../src/watchpath/gui/app.py).
+[`watchpath.gui.launch_gui`](../src/watchpath/gui/__init__.py) from your own code. The main window lives
+in [`watchpath/gui/main_window.py`](../src/watchpath/gui/main_window.py) and composes reusable widgets
+from [`watchpath/ui`](../src/watchpath/ui).
 
 ## Launching the app
 
@@ -25,19 +26,20 @@ The interface is divided into three primary areas:
 
 1. **Toolbar** — Located at the top (`_build_toolbar`). It provides:
    - **Open Log 🍡** to choose a log file.
-   - **Stop ⏹** to cancel the current background analysis after the active session completes.
-   - A **model** combo box listing common Ollama models (editable for custom entries).
-   - A **chunk size** spin box for how many log lines per session go to the model.
-   - A **Prompt ✨** button to swap the base prompt template.
-   - An **Anomaly threshold** slider (“vibe slider”) that hides sessions below the chosen score.
-   - A **theme toggle** button for switching between light and dark palettes.
-2. **Global statistics card** — A panel produced by `GlobalStatsWidget` that summarises mean session
-   duration, HTTP method mix, and the most frequent IPs. It gently animates when new stats arrive.
-3. **Session workspace** — A horizontal splitter containing:
-   - The **session carousel** (`SessionListWidget`), showing each analysed session as a card with
-     anomaly score, request count, and emoji severity.
-   - The **session detail view** (`SessionDetailWidget`) where you inspect the selected session’s
-     summary, Mochi risk meter, analyst note, evidence, raw logs, and Markdown export.
+   - **Re-run with alternate parameters** to respawn the worker with a different model, chunk size, or
+     prompt template.
+   - **Stop analysis** to cancel the current background processing.
+   - A **theme toggle** for switching between the bundled dark and light palettes.
+2. **Global statistics card** — Powered by `GlobalStatsWidget`. It now shows sparklines for request
+   timelines, bar charts for status codes, and a combobox to swap between overview summaries.
+3. **Session workspace** — A horizontal splitter containing three panels:
+   - The **session list** (`SessionListWidget`) with quick search, multi-select, and method/IP/score
+     filters.
+   - The **session detail view** (`SessionDetailWidget`) featuring editable analyst notes, tagging,
+     sortable request timelines, evidence/log search, export buttons, and side-by-side diffing.
+   - A vertical stack combining the **recent analyses** sidebar (`RecentAnalysesSidebar`) and the
+     **prompt manager** (`PromptManagerPanel`) for template previews, version history, and per-session
+     overrides.
 
 Status updates and progress live in the status bar at the bottom. A determinate progress bar appears
 while analysis is running and hides once complete.
@@ -59,19 +61,22 @@ current session finishes and the UI keeps all results collected so far.
 
 ## Exploring sessions
 
-- Selecting a card in the session carousel updates the detail pane via `_handle_session_selected`.
-- The Mochi meter in `SessionDetailWidget` classifies risk bands (`safe`, `low`, `medium`, `high`) and
-  recolours the progress bar and mascot accordingly.
-- The “Evidence” tab renders model-supplied evidence, and the “Logs” tab shows the raw chunk fed into
-  the LLM. A Markdown tab exposes the exact Markdown text used by the CLI.
-- Adjust the anomaly threshold slider to focus on higher-risk sessions. Hidden cards disappear from the
-  carousel but remain in memory and reappear when the threshold lowers again.
+- Selecting one or more cards in the session list updates the detail pane. Multi-select lets you apply
+  prompt overrides to multiple sessions at once.
+- The detail view surfaces model, chunk, and prompt metadata directly under the session title.
+- Tabs present evidence, raw logs, and Markdown with dedicated copy/export controls. Search boxes
+  highlight matches in evidence and logs, while the diff tab compares any two sources.
+- The timeline table can display either the per-session request sequence or the global distribution
+  computed by the worker.
+- Analyst notes are editable `QTextEdit`s with tagging and assignment controls. Saving a note persists it
+  for the lifetime of the window, even after prompt overrides.
 
-## Themes and vibes
+## Themes and prompt overrides
 
-Two themes ship with the app (`THEME_CONFIGS`): a default dark palette and a light alternative. The
-**☀️/🌙** button flips between them, recolouring the entire window and the Mochi meter styling. The
-vibe slider’s threshold is displayed in the status bar every time it changes.
+The light/dark theme toggle adjusts a simple stylesheet applied to the entire window. The prompt manager
+lets you inspect available prompt templates, browse any stored history (files placed in a `.history`
+folder next to the template), and emit overrides for the currently-selected sessions. When an override is
+applied the session is re-analysed in-place and the metadata banner records the override path.
 
 ## Drag and drop
 

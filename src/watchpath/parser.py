@@ -8,7 +8,7 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Sequence
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from .ai import SessionAnalysis
 
@@ -70,6 +70,8 @@ class SessionStatistics:
     mean_session_duration: float
     ip_distribution: Dict[str, int]
     request_counts: Dict[str, int]
+    status_distribution: Dict[int, int]
+    request_timeline: List[Tuple[str, int]]
 
 
 def chunk_log_file(log_path: str, chunk_size: int = 50) -> Iterable[str]:
@@ -164,13 +166,27 @@ def summarize_sessions(sessions: Iterable[Session]) -> SessionStatistics:
     ip_counts = Counter(session.ip for session in session_list)
 
     request_counts: Counter[str] = Counter()
+    status_counts: Counter[int] = Counter()
+    timeline_counts: Counter[datetime] = Counter()
     for session in session_list:
-        request_counts.update(record.method or "UNKNOWN" for record in session.records)
+        for record in session.records:
+            request_counts.update([record.method or "UNKNOWN"])
+            status_counts.update([record.status])
+            # Normalise to minute precision for the global sparkline chart.
+            minute = record.timestamp.replace(second=0, microsecond=0)
+            timeline_counts[minute] += 1
+
+    timeline_points = [
+        (moment.isoformat(), count)
+        for moment, count in sorted(timeline_counts.items())
+    ]
 
     return SessionStatistics(
         mean_session_duration=mean_duration,
         ip_distribution=dict(ip_counts),
         request_counts=dict(request_counts),
+        status_distribution=dict(status_counts),
+        request_timeline=timeline_points,
     )
 
 
@@ -211,7 +227,21 @@ def build_session_payload(
             "ip_distribution": dict(global_stats.ip_distribution),
             "request_counts": dict(global_stats.request_counts),
             "top_ips": top_ips,
+            "status_distribution": dict(global_stats.status_distribution),
+            "request_timeline": list(global_stats.request_timeline),
         },
+        "records": [
+            {
+                "timestamp": record.timestamp.isoformat(),
+                "method": record.method,
+                "path": record.path,
+                "status": record.status,
+                "size": record.size,
+                "referrer": record.referrer,
+                "user_agent": record.user_agent,
+            }
+            for record in session.records
+        ],
     }
 
 
