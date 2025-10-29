@@ -260,28 +260,55 @@ class GlobalStatsWidget(QFrame):
         raw_timeline: Iterable[Tuple[str, int]] = (
             self._stats.get("request_timeline", []) or []
         )
-        timeline: list[Tuple[str, int]] = list(raw_timeline)
         self._timeline_lookup.clear()
-        timestamps: list[QDateTime] = []
-        counts: list[float] = []
-        valid_timestamps: list[str] = []
-        for timestamp, count in timeline:
+        sanitized_points: list[tuple[int, QDateTime, float, str, int]] = []
+        dropped_points = 0
+        for entry in raw_timeline:
+            if not isinstance(entry, (tuple, list)) or len(entry) != 2:
+                dropped_points += 1
+                continue
+            timestamp, count = entry
             try:
                 numeric_count = float(count)
             except (TypeError, ValueError):
+                dropped_points += 1
                 continue
-            if not isfinite(numeric_count):
+            if not isfinite(numeric_count) or numeric_count < 0:
+                dropped_points += 1
                 continue
-            dt = self._parse_timestamp(timestamp)
+            dt = self._parse_timestamp(str(timestamp))
             if dt is None:
+                dropped_points += 1
                 continue
-            msecs = dt.toMSecsSinceEpoch()
+            msecs = int(dt.toMSecsSinceEpoch())
+            sanitized_points.append(
+                (msecs, dt, numeric_count, str(timestamp), int(round(numeric_count)))
+            )
+
+        if not sanitized_points:
+            if raw_timeline:
+                self.footer.setText(
+                    "Timeline data could not be visualised due to invalid entries."
+                )
+                self._show_placeholder("Timeline data contains unsupported values.")
+            else:
+                self.footer.setText("Timeline will populate once traffic is analysed.")
+                self._show_placeholder("Timeline will populate once traffic is analysed.")
+            self._timeline_series = None
+            return
+
+        sanitized_points.sort(key=lambda item: item[0])
+
+        timestamps: list[QDateTime] = []
+        counts: list[float] = []
+        valid_timestamps: list[str] = []
+        for msecs, dt, numeric_count, timestamp, discrete_count in sanitized_points:
             series.append(float(msecs), numeric_count)
-            discrete_count = int(round(numeric_count))
-            self._timeline_lookup[int(msecs)] = (timestamp, discrete_count)
+            self._timeline_lookup[msecs] = (timestamp, discrete_count)
             timestamps.append(dt)
             counts.append(numeric_count)
             valid_timestamps.append(timestamp)
+
         chart.addSeries(series)
 
         axis_x = QDateTimeAxis()
@@ -296,7 +323,10 @@ class GlobalStatsWidget(QFrame):
         axis_y.setTitleText("Requests per bucket")
         if counts:
             max_count = max(counts)
-            axis_y.setRange(0, max_count if max_count > 0 else 1)
+            if not isfinite(max_count) or max_count <= 0:
+                axis_y.setRange(0, 1)
+            else:
+                axis_y.setRange(0, max_count)
         else:
             axis_y.setRange(0, 1)
         axis_y.applyNiceNumbers()
@@ -305,17 +335,15 @@ class GlobalStatsWidget(QFrame):
 
         if counts and timestamps:
             start, end = valid_timestamps[0], valid_timestamps[-1]
-            self.footer.setText(
-                f"Activity spans from {start} to {end}. Hover to inspect density."
-            )
+            message = f"Activity spans from {start} to {end}. Hover to inspect density."
+            if dropped_points:
+                plural = "s" if dropped_points != 1 else ""
+                message += f" (Ignored {dropped_points} invalid bucket{plural}.)"
+            self.footer.setText(message)
             self._timeline_series = series
             series.hovered.connect(self._show_timeline_tooltip)
             series.pointClicked.connect(self._emit_timeline_activation)
             self._display_chart(chart)
-        elif timeline and not timestamps:
-            self.footer.setText("Timeline data is available but could not be parsed.")
-            self._show_placeholder("Timeline data could not be parsed.")
-            self._timeline_series = None
         else:
             self.footer.setText("Timeline will populate once traffic is analysed.")
             self._show_placeholder("Timeline will populate once traffic is analysed.")
