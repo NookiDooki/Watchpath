@@ -20,8 +20,11 @@ from PySide6.QtGui import (
     QLinearGradient,
     QPainter,
     QPen,
-    QShortcut,
 )
+try:  # PySide6 < 6.5 exposed QShortcut via QtWidgets
+    from PySide6.QtGui import QShortcut
+except ImportError:  # pragma: no cover - legacy compatibility path
+    from PySide6.QtWidgets import QShortcut  # type: ignore[attr-defined]
 from PySide6.QtWidgets import (
     QComboBox,
     QGridLayout,
