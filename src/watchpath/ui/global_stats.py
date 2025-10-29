@@ -182,6 +182,13 @@ class GlobalStatsWidget(QFrame):
 
             axis_y = QValueAxis()
             axis_y.setTitleText("Requests")
+            maximum = max(values)
+            if maximum <= 0:
+                # ``QValueAxis`` becomes unhappy when asked to auto-range a flat series.
+                # Ensure a sensible upper bound so that the chart remains usable and
+                # avoids spamming the console with NaN warnings.
+                maximum = 1
+            axis_y.setRange(0, maximum)
             axis_y.applyNiceNumbers()
             chart.addAxis(axis_y, Qt.AlignLeft)
             series.attachAxis(axis_y)
@@ -226,6 +233,10 @@ class GlobalStatsWidget(QFrame):
 
             axis_y = QValueAxis()
             axis_y.setTitleText("Responses")
+            maximum = max(values)
+            if maximum <= 0:
+                maximum = 1
+            axis_y.setRange(0, maximum)
             axis_y.applyNiceNumbers()
             chart.addAxis(axis_y, Qt.AlignLeft)
             series.attachAxis(axis_y)
