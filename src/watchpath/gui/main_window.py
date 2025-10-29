@@ -280,12 +280,12 @@ class KawaiiMainWindow(QMainWindow):
             button.clicked.connect(handler)
             return button
 
-        toolbar.addWidget(_make_button("Open log", "📂", self._choose_log_file))
+        toolbar.addWidget(_make_button("Choose log", "🍡", self._choose_log_file))
         toolbar.addWidget(
-            _make_button("Re-run with new parameters", "🔁", self._prompt_rerun)
+            _make_button("Change model and parameters", "⚙️", self._prompt_rerun)
         )
 
-        self._stop_button = _make_button("Stop analysis", "⏹️", self._stop_worker)
+        self._stop_button = _make_button("Stop analysis", "🛑", self._stop_worker)
         self._stop_button.setEnabled(False)
         toolbar.addWidget(self._stop_button)
 

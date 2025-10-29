@@ -108,7 +108,46 @@ def _parse_analysis_output(output: str) -> tuple[Optional[float], str, Optional[
 
 
 def _safe_float(value: object) -> Optional[float]:
-    try:
-        return float(value)
-    except (TypeError, ValueError):
+    """Best-effort conversion of model provided scores to a [0, 1] float.
+
+    The language model does not always return a clean float.  It may add
+    annotations such as "0.75 (High)", percentages like "75%", or even spell the
+    value out as part of a longer sentence.  This helper extracts the first
+    numeric token from the string, interprets percentages, and normalises the
+    result into the expected probability range.
+    """
+
+    if value is None:
         return None
+
+    is_percentage = False
+
+    if isinstance(value, (int, float)):
+        number = float(value)
+    elif isinstance(value, str):
+        cleaned = value.strip()
+        if not cleaned:
+            return None
+
+        match = re.search(r"-?[0-9]+(?:\.[0-9]+)?", cleaned)
+        if not match:
+            return None
+
+        number = float(match.group())
+
+        if "%" in cleaned or "percent" in cleaned.lower():
+            number /= 100.0
+            is_percentage = True
+    else:
+        return None
+
+    if number < 0:
+        number = 0.0
+
+    if number > 1.0:
+        if not is_percentage and number <= 100.0:
+            number /= 100.0
+        elif not is_percentage:
+            return None
+
+    return min(number, 1.0)
