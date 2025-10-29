@@ -217,11 +217,25 @@ class SessionDetailWidget(QWidget):
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.setSpacing(8)
 
+        self.evidence_view = SearchableTextBrowser()
+        self.evidence_view.setObjectName("EvidenceView")
+        self.logs_view = SearchableTextBrowser()
+        self.logs_view.setObjectName("LogsView")
+        self.markdown_view = SearchableTextBrowser()
+        self.markdown_view.setObjectName("MarkdownView")
+
         search_row = QHBoxLayout()
         search_row.setSpacing(6)
         self.evidence_search = QLineEdit()
         self.evidence_search.setPlaceholderText("Search evidence…")
-        self.evidence_search.textChanged.connect(lambda text: self._on_search_changed(self.evidence_view, self.evidence_prev, self.evidence_next, text))
+        self.evidence_search.textChanged.connect(
+            lambda text: self._on_search_changed(
+                self.evidence_view,
+                self.evidence_prev,
+                self.evidence_next,
+                text,
+            )
+        )
         self.evidence_prev = QToolButton()
         self.evidence_prev.setText("‹")
         self.evidence_prev.setEnabled(False)
@@ -235,7 +249,14 @@ class SessionDetailWidget(QWidget):
         search_row.addWidget(self.evidence_next)
         self.logs_search = QLineEdit()
         self.logs_search.setPlaceholderText("Search logs…")
-        self.logs_search.textChanged.connect(lambda text: self._on_search_changed(self.logs_view, self.logs_prev, self.logs_next, text))
+        self.logs_search.textChanged.connect(
+            lambda text: self._on_search_changed(
+                self.logs_view,
+                self.logs_prev,
+                self.logs_next,
+                text,
+            )
+        )
         self.logs_prev = QToolButton()
         self.logs_prev.setText("‹")
         self.logs_prev.setEnabled(False)
@@ -250,12 +271,6 @@ class SessionDetailWidget(QWidget):
         left_layout.addLayout(search_row)
 
         self.tabs = QTabWidget()
-        self.evidence_view = SearchableTextBrowser()
-        self.evidence_view.setObjectName("EvidenceView")
-        self.logs_view = SearchableTextBrowser()
-        self.logs_view.setObjectName("LogsView")
-        self.markdown_view = SearchableTextBrowser()
-        self.markdown_view.setObjectName("MarkdownView")
         self.tabs.addTab(self.evidence_view, "Evidence")
         self.tabs.addTab(self.logs_view, "Logs")
         self.tabs.addTab(self.markdown_view, "Markdown")

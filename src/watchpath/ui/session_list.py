@@ -20,6 +20,7 @@ from PySide6.QtGui import (
     QLinearGradient,
     QPainter,
     QPen,
+    QShortcut,
 )
 from PySide6.QtWidgets import (
     QComboBox,
@@ -29,7 +30,6 @@ from PySide6.QtWidgets import (
     QListView,
     QLineEdit,
     QPushButton,
-    QShortcut,
     QStyle,
     QStyledItemDelegate,
     QWidget,
