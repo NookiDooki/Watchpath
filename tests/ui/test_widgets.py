@@ -129,3 +129,31 @@ def test_recent_sidebar_emits_selected(qt_app):
     sidebar.sessionSelected.connect(lambda payload: results.append(payload))
     sidebar._emit_selection(item)
     assert results and isinstance(results[0], ProcessedSession)
+
+
+def test_recent_sidebar_metadata_and_actions(qt_app):
+    sidebar = RecentAnalysesSidebar(capacity=2)
+    processed = _build_processed("session-5")
+    processed.payload["summary"] = "Investigate spikes"
+    processed.payload["session_stats"]["method_counts"] = {"GET": 3, "POST": 1}
+    sidebar.add_session(processed)
+
+    item = sidebar.list_widget.item(0)
+    assert "IP" in item.text()
+    assert "Investigate spikes" in item.toolTip()
+
+    pinned = []
+    sidebar.sessionPinned.connect(lambda payload: pinned.append(payload))
+    sidebar._pin_item(item)
+    assert pinned and pinned[0] is processed
+    assert item.data(Qt.UserRole + 1) is True
+
+    compared = []
+    sidebar.compareRequested.connect(lambda payload: compared.append(payload))
+    sidebar._emit_compare(item)
+    assert compared and compared[0] is processed
+
+    detailed = []
+    sidebar.detailRequested.connect(lambda payload: detailed.append(payload))
+    sidebar._open_details(item)
+    assert detailed and detailed[0] is processed
