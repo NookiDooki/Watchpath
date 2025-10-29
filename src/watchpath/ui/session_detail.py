@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QColor
 from PySide6.QtWidgets import (
     QFormLayout,
     QFrame,
@@ -13,7 +13,10 @@ from PySide6.QtWidgets import (
     QTextBrowser,
     QVBoxLayout,
     QWidget,
+    QGraphicsDropShadowEffect,
 )
+
+from .severity import severity_for_score
 
 
 class SessionDetailWidget(QWidget):
@@ -54,6 +57,10 @@ class SessionDetailWidget(QWidget):
         kaomoji_font.setBold(True)
         self.kaomoji_label.setFont(kaomoji_font)
         self.kaomoji_label.setAlignment(Qt.AlignCenter)
+        self._kaomoji_shadow = QGraphicsDropShadowEffect(self.kaomoji_label)
+        self._kaomoji_shadow.setBlurRadius(24)
+        self._kaomoji_shadow.setOffset(0, 0)
+        self.kaomoji_label.setGraphicsEffect(self._kaomoji_shadow)
         stats_layout.addRow("Mochi mood", self.kaomoji_label)
 
         self.score_label = QLabel("Mochi meter: 0.00% (Safe)")
@@ -100,7 +107,10 @@ class SessionDetailWidget(QWidget):
         self._current_session = None
         self.session_label.setText("Select a session to begin the journey ✨")
         self.metadata_label.setText("—")
-        self.score_label.setText("Mochi meter: 0.00% (Safe)")
+        base_style = severity_for_score(None)
+        self.score_label.setText(
+            f"Mochi meter: N/A {base_style.emoji} ({base_style.label})"
+        )
         self.duration_label.setText("—")
         self.request_label.setText("—")
         self.unique_label.setText("—")
@@ -130,8 +140,9 @@ class SessionDetailWidget(QWidget):
         if isinstance(score, (int, float)):
             percent = min(max(float(score) * 100, 0.0), 100.0)
             score_text = f"{percent:.2f}%"
-        label = self._classify_risk(score)
-        self.score_label.setText(f"Mochi meter: {score_text} ({label})")
+        style = severity_for_score(score)
+        emoji = style.emoji
+        self.score_label.setText(f"Mochi meter: {score_text} {emoji} ({style.label})")
         self._apply_severity_style(score)
 
         stats = payload.get("session_stats", {})
@@ -154,37 +165,12 @@ class SessionDetailWidget(QWidget):
         self.markdown_view.setMarkdown(getattr(processed, "markdown_report", ""))
 
     # ------------------------------------------------------------------
-    @staticmethod
-    def _classify_risk(score: Optional[float]) -> str:
-        if not isinstance(score, (int, float)):
-            return "Safe"
-        percent = score * 100
-        if percent < 10:
-            return "Safe"
-        if percent < 40:
-            return "Caution"
-        if percent < 75:
-            return "Elevated"
-        return "Critical"
-
     def _apply_severity_style(self, score: Optional[float]) -> None:
-        face, color = self._kaomoji_for_score(score)
-        self.kaomoji_label.setText(face)
-        self.kaomoji_label.setStyleSheet(
-            f"color: {color}; text-shadow: 0 0 6px {color};"
-        )
-
-    @staticmethod
-    def _kaomoji_for_score(score: Optional[float]) -> tuple[str, str]:
-        if not isinstance(score, (int, float)):
-            return "(=^‥^=)", "#65c466"
-        if score < 0.25:
-            return "(=^‥^=)ﾉ", "#65c466"
-        if score < 0.5:
-            return "(=^･ω･^=;)", "#f4b400"
-        if score < 0.75:
-            return "(=｀ェ´=)", "#fb8c00"
-        return "(=；´ω`=)", "#e53935"
+        style = severity_for_score(score)
+        self.kaomoji_label.setText(style.kaomoji)
+        self.kaomoji_label.setStyleSheet(f"color: {style.color};")
+        if self._kaomoji_shadow is not None:
+            self._kaomoji_shadow.setColor(QColor(style.color))
 
     @staticmethod
     def _format_duration(value: float) -> str:
