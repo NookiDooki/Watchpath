@@ -234,6 +234,39 @@ class RerunDialog(QDialog):
 class SessionSelectionDialog(QDialog):
     """Dialog allowing the user to pick which sessions should be analysed."""
 
+    @staticmethod
+    def _datetime_to_qdatetime(value: datetime) -> QDateTime:
+        if hasattr(QDateTime, "fromPython"):
+            return QDateTime.fromPython(value)
+        if value.tzinfo is not None:
+            value = value.astimezone(timezone.utc)
+            spec = Qt.UTC
+        else:
+            spec = Qt.LocalTime
+        return QDateTime(
+            value.year,
+            value.month,
+            value.day,
+            value.hour,
+            value.minute,
+            value.second,
+            value.microsecond // 1000,
+            spec,
+        )
+
+    @staticmethod
+    def _qdatetime_to_datetime(value: QDateTime) -> datetime:
+        if hasattr(value, "toPython"):
+            return value.toPython()
+        # ``toMSecsSinceEpoch`` is available across Qt versions and keeps timezone info
+        # via the returned epoch seconds. We normalise to UTC for consistent handling.
+        milliseconds = value.toMSecsSinceEpoch()
+        seconds, remainder = divmod(milliseconds, 1000)
+        microseconds = remainder * 1000
+        return datetime.fromtimestamp(seconds, tz=timezone.utc).replace(
+            microsecond=microseconds
+        )
+
     def __init__(self, parent: Optional[QWidget], sessions: list[Session]) -> None:
         super().__init__(parent)
         self.setObjectName("SessionSelectionDialog")
@@ -301,20 +334,24 @@ class SessionSelectionDialog(QDialog):
         self.end_edit.setCalendarPopup(True)
 
         if earliest:
-            start_dt = QDateTime.fromPython(earliest)
+            start_dt = self._datetime_to_qdatetime(earliest)
             self.start_edit.setDateTime(start_dt)
             self.start_edit.setMinimumDateTime(start_dt)
             if latest:
-                self.start_edit.setMaximumDateTime(QDateTime.fromPython(latest))
+                self.start_edit.setMaximumDateTime(
+                    self._datetime_to_qdatetime(latest)
+                )
         else:
             self.start_edit.setEnabled(False)
 
         if latest:
-            end_dt = QDateTime.fromPython(latest)
+            end_dt = self._datetime_to_qdatetime(latest)
             self.end_edit.setDateTime(end_dt)
             self.end_edit.setMaximumDateTime(end_dt)
             if earliest:
-                self.end_edit.setMinimumDateTime(QDateTime.fromPython(earliest))
+                self.end_edit.setMinimumDateTime(
+                    self._datetime_to_qdatetime(earliest)
+                )
         else:
             self.end_edit.setEnabled(False)
 
@@ -430,8 +467,8 @@ class SessionSelectionDialog(QDialog):
             self.time_preview.setText("Start time must be before end time.")
             return
 
-        start = start_dt.toPython()
-        end = end_dt.toPython()
+        start = self._qdatetime_to_datetime(start_dt)
+        end = self._qdatetime_to_datetime(end_dt)
 
         matched = [
             session
@@ -475,8 +512,8 @@ class SessionSelectionDialog(QDialog):
             QMessageBox.warning(self, "Choose sessions", "Start time must be before end time.")
             return
 
-        start = start_dt.toPython()
-        end = end_dt.toPython()
+        start = self._qdatetime_to_datetime(start_dt)
+        end = self._qdatetime_to_datetime(end_dt)
         matches = [
             session
             for session in self._sessions
