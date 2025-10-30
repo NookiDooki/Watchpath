@@ -3,14 +3,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-from PySide6.QtCore import QObject, Qt, QThread, Signal
-from PySide6.QtGui import QAction
+from PySide6.QtCore import QObject, Qt, QThread, Signal, QDateTime
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
+    QDateTimeEdit,
     QDialog,
     QDialogButtonBox,
     QFileDialog,
@@ -25,6 +26,7 @@ from PySide6.QtWidgets import (
     QSpinBox,
     QSplitter,
     QStatusBar,
+    QTabWidget,
     QToolBar,
     QToolButton,
     QVBoxLayout,
@@ -76,12 +78,16 @@ class AnalysisWorker(QObject):
         chunk_size: int,
         model: str,
         prompt_path: Path,
+        selection_summary: str | None = None,
+        sessions: list[Session] | None = None,
     ) -> None:
         super().__init__()
         self.log_path = log_path
         self.chunk_size = max(1, chunk_size)
         self.model = model
         self.prompt_path = prompt_path
+        self._provided_sessions = list(sessions) if sessions is not None else None
+        self._selection_summary = selection_summary
         self._should_stop = False
 
     def run(self) -> None:  # pragma: no cover - requires Qt event loop
@@ -92,9 +98,16 @@ class AnalysisWorker(QObject):
                 raise FileNotFoundError(f"Prompt template not found: {self.prompt_path}")
 
             self.status.emit("🌸 Preparing tea and parsing sessions…")
-            sessions = load_sessions(str(self.log_path))
+            if self._provided_sessions is not None:
+                sessions = list(self._provided_sessions)
+                self._provided_sessions = None
+            else:
+                sessions = load_sessions(str(self.log_path))
             if not sessions:
                 raise RuntimeError("No sessions discovered in the selected log file.")
+
+            if self._selection_summary:
+                self.status.emit(self._selection_summary)
 
             stats = summarize_sessions(sessions)
             self.global_stats_ready.emit(self._build_global_payload(stats))
@@ -216,6 +229,278 @@ class RerunDialog(QDialog):
             int(self.chunk_spin.value()),
             Path(self.prompt_edit.text().strip()),
         )
+
+
+class SessionSelectionDialog(QDialog):
+    """Dialog allowing the user to pick which sessions should be analysed."""
+
+    def __init__(self, parent: Optional[QWidget], sessions: list[Session]) -> None:
+        super().__init__(parent)
+        self.setObjectName("SessionSelectionDialog")
+        self.setWindowTitle("Choose sessions to inspect")
+        self.setModal(True)
+        self.resize(520, 420)
+
+        self._sessions = sorted(
+            sessions,
+            key=lambda session: session.start
+            or (datetime.min.replace(tzinfo=timezone.utc)),
+        )
+        self._selected_sessions: list[Session] = []
+        self._selection_summary = ""
+
+        total = len(self._sessions)
+        earliest = self._sessions[0].start if self._sessions else None
+        latest = self._sessions[-1].end if self._sessions else None
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(18)
+
+        summary = QLabel(
+            f"🍰 We whisked together <b>{total}</b> delightful sessions from this log."
+        )
+        summary.setAlignment(Qt.AlignCenter)
+        summary.setObjectName("SessionSummaryLabel")
+        layout.addWidget(summary)
+
+        hint = QLabel("Choose how many little stories you'd like to explore ✨")
+        hint.setAlignment(Qt.AlignCenter)
+        hint.setObjectName("SessionHintLabel")
+        layout.addWidget(hint)
+
+        self.tabs = QTabWidget()
+        self.tabs.setObjectName("SessionTabs")
+        layout.addWidget(self.tabs, 1)
+
+        # Count based selection tab
+        count_widget = QWidget()
+        count_layout = QFormLayout(count_widget)
+        count_layout.setContentsMargins(24, 24, 24, 24)
+        count_layout.setSpacing(16)
+        self.count_spin = QSpinBox()
+        self.count_spin.setMinimum(1)
+        self.count_spin.setMaximum(max(1, total))
+        self.count_spin.setValue(min(10, total))
+        count_layout.addRow("Number of sessions", self.count_spin)
+
+        self.count_preview = QLabel("")
+        self.count_preview.setObjectName("SelectionPreview")
+        count_layout.addRow("", self.count_preview)
+        self.tabs.addTab(count_widget, "By count")
+
+        # Time based selection tab
+        time_widget = QWidget()
+        time_layout = QFormLayout(time_widget)
+        time_layout.setContentsMargins(24, 24, 24, 24)
+        time_layout.setSpacing(16)
+
+        self.start_edit = QDateTimeEdit()
+        self.start_edit.setCalendarPopup(True)
+        self.end_edit = QDateTimeEdit()
+        self.end_edit.setCalendarPopup(True)
+
+        if earliest:
+            start_dt = QDateTime.fromPython(earliest)
+            self.start_edit.setDateTime(start_dt)
+            self.start_edit.setMinimumDateTime(start_dt)
+            if latest:
+                self.start_edit.setMaximumDateTime(QDateTime.fromPython(latest))
+        else:
+            self.start_edit.setEnabled(False)
+
+        if latest:
+            end_dt = QDateTime.fromPython(latest)
+            self.end_edit.setDateTime(end_dt)
+            self.end_edit.setMaximumDateTime(end_dt)
+            if earliest:
+                self.end_edit.setMinimumDateTime(QDateTime.fromPython(earliest))
+        else:
+            self.end_edit.setEnabled(False)
+
+        self.start_edit.setDisplayFormat("dd MMM yyyy hh:mm")
+        self.end_edit.setDisplayFormat("dd MMM yyyy hh:mm")
+
+        time_layout.addRow("Start", self.start_edit)
+        time_layout.addRow("End", self.end_edit)
+
+        self.time_preview = QLabel("")
+        self.time_preview.setObjectName("SelectionPreview")
+        time_layout.addRow("", self.time_preview)
+        self.tabs.addTab(time_widget, "By time")
+
+        if not (earliest and latest):
+            time_widget.setEnabled(False)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self._on_accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+        self.count_spin.valueChanged.connect(self._update_count_preview)
+        self.start_edit.dateTimeChanged.connect(self._update_time_preview)
+        self.end_edit.dateTimeChanged.connect(self._update_time_preview)
+
+        self._update_count_preview(self.count_spin.value())
+        self._update_time_preview()
+        self._apply_style(parent)
+
+    def _apply_style(self, parent: Optional[QWidget]) -> None:
+        theme = "dark"
+        if parent and hasattr(parent, "theme_combo"):
+            theme = parent.theme_combo.currentText()
+        if theme == "light":
+            bg = "#f9f4ff"
+            text = "#2d2240"
+            accent = "#ab47bc"
+            card = "rgba(149, 117, 205, 0.12)"
+        else:
+            bg = "#151b2c"
+            text = "#f7f8ff"
+            accent = "#f48fb1"
+            card = "rgba(255, 255, 255, 0.08)"
+
+        self.setStyleSheet(
+            "QDialog#SessionSelectionDialog {"
+            f" background-color: {bg};"
+            " border-radius: 24px;"
+            "}"
+            "QLabel#SessionSummaryLabel, QLabel#SessionHintLabel {"
+            f" color: {text};"
+            " font-size: 16px;"
+            " font-weight: 600;"
+            "}"
+            "QTabWidget::pane {"
+            f" background: {card};"
+            " border-radius: 18px;"
+            f" border: 1px solid {accent};"
+            " padding: 12px;"
+            "}"
+            "QTabBar::tab {"
+            f" background: {card};"
+            f" color: {text};"
+            " border-radius: 16px;"
+            " padding: 8px 18px;"
+            " margin: 4px;"
+            " font-weight: 600;"
+            "}"
+            "QTabBar::tab:selected {"
+            f" background: {accent};"
+            " color: white;"
+            "}"
+            "QLabel#SelectionPreview {"
+            f" color: {text};"
+            " font-style: italic;"
+            "}" 
+            "QDialogButtonBox QPushButton {"
+            f" background: {accent};"
+            " color: white;"
+            " border-radius: 16px;"
+            " padding: 8px 18px;"
+            " font-weight: 600;"
+            " min-width: 120px;"
+            "}"
+            "QDialogButtonBox QPushButton:disabled {"
+            " background: #888;"
+            " color: #eee;"
+            "}"
+        )
+
+    def _update_count_preview(self, value: int) -> None:
+        total = len(self._sessions)
+        if total == 1:
+            message = "The lone session will be reviewed."
+        else:
+            message = f"We'll pamper the first {value} of {total} sessions."
+        self.count_preview.setText(message)
+
+    def _update_time_preview(self) -> None:
+        if not (self.start_edit.isEnabled() and self.end_edit.isEnabled()):
+            self.time_preview.setText(
+                "Time window selection isn't available for these sessions."
+            )
+            return
+
+        start_dt = self.start_edit.dateTime()
+        end_dt = self.end_edit.dateTime()
+        if not start_dt.isValid() or not end_dt.isValid():
+            self.time_preview.setText("Choose a valid time range to see matching sessions.")
+            return
+        if start_dt > end_dt:
+            self.time_preview.setText("Start time must be before end time.")
+            return
+
+        start = start_dt.toPython()
+        end = end_dt.toPython()
+
+        matched = [
+            session
+            for session in self._sessions
+            if self._session_overlaps(session, start, end)
+        ]
+        if matched:
+            message = (
+                f"This dreamy window wraps {len(matched)} session"
+                f"{'s' if len(matched) != 1 else ''}."
+            )
+        else:
+            message = "No sessions sparkle inside this window yet."
+        self.time_preview.setText(message)
+
+    @staticmethod
+    def _session_overlaps(session: Session, start: datetime, end: datetime) -> bool:
+        if not session.records:
+            return False
+        session_start = session.start or session.records[0].timestamp
+        session_end = session.end or session.records[-1].timestamp
+        return (session_end >= start) and (session_start <= end)
+
+    def _on_accept(self) -> None:
+        current_tab = self.tabs.currentIndex()
+        if current_tab == 0:
+            limit = int(self.count_spin.value())
+            self._selected_sessions = self._sessions[:limit]
+            self._selection_summary = (
+                f"🧁 Inspecting {limit} session{'s' if limit != 1 else ''} out of {len(self._sessions)}."
+            )
+            self.accept()
+            return
+
+        start_dt = self.start_edit.dateTime()
+        end_dt = self.end_edit.dateTime()
+        if not start_dt.isValid() or not end_dt.isValid():
+            QMessageBox.warning(self, "Choose sessions", "Please provide a valid time range.")
+            return
+        if start_dt > end_dt:
+            QMessageBox.warning(self, "Choose sessions", "Start time must be before end time.")
+            return
+
+        start = start_dt.toPython()
+        end = end_dt.toPython()
+        matches = [
+            session
+            for session in self._sessions
+            if self._session_overlaps(session, start, end)
+        ]
+        if not matches:
+            QMessageBox.information(
+                self,
+                "Choose sessions",
+                "No sessions were discovered inside that time window. Try a wider hug!",
+            )
+            return
+        self._selected_sessions = matches
+        self._selection_summary = (
+            f"🌙 Exploring {len(matches)} session"
+            f"{'s' if len(matches) != 1 else ''} between {start:%d %b %Y %H:%M} and {end:%d %b %Y %H:%M}."
+        )
+        self.accept()
+
+    def selected_sessions(self) -> list[Session]:
+        return list(self._selected_sessions)
+
+    def selection_summary(self) -> str:
+        return self._selection_summary
 
 
 class KawaiiMainWindow(QMainWindow):
@@ -474,19 +759,53 @@ class KawaiiMainWindow(QMainWindow):
             self.load_log_file(Path(path))
 
     def load_log_file(self, path: Path) -> None:
+        try:
+            sessions = load_sessions(str(path))
+        except Exception as exc:
+            QMessageBox.critical(self, "Load log", str(exc))
+            return
+
+        if not sessions:
+            QMessageBox.information(
+                self,
+                "Load log",
+                "No sessions discovered in this log file. Maybe try another mochi batch?",
+            )
+            return
+
+        dialog = SessionSelectionDialog(self, sessions)
+        if dialog.exec() != QDialog.Accepted:
+            return
+
+        selected_sessions = dialog.selected_sessions()
+        if not selected_sessions:
+            return
+
         self._last_log_path = path
         self.session_list.clear()
         self.detail_widget.clear()
         self._processed_sessions.clear()
         self._session_overrides.clear()
+        self.status_label.setText(dialog.selection_summary())
         self._start_worker(
             log_path=path,
             model=self._default_model,
             chunk_size=self._default_chunk_size,
             prompt_path=self._default_prompt_path,
+            selection_summary=dialog.selection_summary(),
+            sessions=selected_sessions,
         )
 
-    def _start_worker(self, *, log_path: Path, model: str, chunk_size: int, prompt_path: Path) -> None:
+    def _start_worker(
+        self,
+        *,
+        log_path: Path,
+        model: str,
+        chunk_size: int,
+        prompt_path: Path,
+        selection_summary: str | None = None,
+        sessions: list[Session] | None = None,
+    ) -> None:
         self._stop_worker()
         self.status_label.setText("🍡 Spinning up worker…")
         self.progress.setVisible(True)
@@ -498,6 +817,8 @@ class KawaiiMainWindow(QMainWindow):
             chunk_size=chunk_size,
             model=model,
             prompt_path=prompt_path,
+            selection_summary=selection_summary,
+            sessions=sessions,
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
@@ -720,4 +1041,4 @@ class KawaiiMainWindow(QMainWindow):
                 break
 
 
-__all__ = ["KawaiiMainWindow", "ProcessedSession", "AnalysisWorker"]
+__all__ = ["KawaiiMainWindow", "ProcessedSession", "AnalysisWorker", "SessionSelectionDialog"]
