@@ -267,6 +267,12 @@ class SessionSelectionDialog(QDialog):
             microsecond=microseconds
         )
 
+    @staticmethod
+    def _ensure_utc(value: datetime) -> datetime:
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc)
+
     def __init__(self, parent: Optional[QWidget], sessions: list[Session]) -> None:
         super().__init__(parent)
         self.setObjectName("SessionSelectionDialog")
@@ -490,6 +496,10 @@ class SessionSelectionDialog(QDialog):
             return False
         session_start = session.start or session.records[0].timestamp
         session_end = session.end or session.records[-1].timestamp
+        start = SessionSelectionDialog._ensure_utc(start)
+        end = SessionSelectionDialog._ensure_utc(end)
+        session_start = SessionSelectionDialog._ensure_utc(session_start)
+        session_end = SessionSelectionDialog._ensure_utc(session_end)
         return (session_end >= start) and (session_start <= end)
 
     def _on_accept(self) -> None:
@@ -801,19 +811,32 @@ class KawaiiMainWindow(QMainWindow):
             QTimer.singleShot(0, lambda: self.load_log_file(Path(path)))
 
     def load_log_file(self, path: Path) -> None:
+        app = QApplication.instance()
+        cursor_active = False
+        if app is not None:
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            cursor_active = True
+
         try:
             sessions = load_sessions(str(path))
         except Exception as exc:
+            if cursor_active:
+                QApplication.restoreOverrideCursor()
             QMessageBox.critical(self, "Load log", str(exc))
             return
 
         if not sessions:
+            if cursor_active:
+                QApplication.restoreOverrideCursor()
             QMessageBox.information(
                 self,
                 "Load log",
                 "No sessions discovered in this log file. Maybe try another mochi batch?",
             )
             return
+
+        if cursor_active:
+            QApplication.restoreOverrideCursor()
 
         self._show_session_selection_dialog(path, sessions)
 
@@ -827,6 +850,7 @@ class KawaiiMainWindow(QMainWindow):
 
         dialog = SessionSelectionDialog(self, sessions)
         dialog.setAttribute(Qt.WA_DeleteOnClose)
+        dialog.setWindowModality(Qt.ApplicationModal)
 
         def _on_dialog_finished(_result: int) -> None:
             if self._active_selection_dialog is dialog:
@@ -845,6 +869,15 @@ class KawaiiMainWindow(QMainWindow):
 
         self._active_selection_dialog = dialog
         dialog.open()
+        QTimer.singleShot(0, lambda: self._focus_dialog(dialog))
+
+    def _focus_dialog(self, dialog: QDialog) -> None:
+        if dialog is None:
+            return
+        if not dialog.isVisible():
+            dialog.show()
+        dialog.raise_()
+        dialog.activateWindow()
 
     def _finalise_log_selection(
         self, path: Path, sessions: list[Session], summary: str
