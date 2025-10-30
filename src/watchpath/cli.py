@@ -20,8 +20,7 @@ from .parser import (
 )
 
 DEFAULT_PROMPT_PATH = Path("prompts/base_prompt.txt")
-DEFAULT_SESSION_LIMIT = 5
-
+DEFAULT_SESSION_LIMIT = int(input("How many lines would you like to analyze?: "))
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
