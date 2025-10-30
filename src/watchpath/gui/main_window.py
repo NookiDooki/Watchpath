@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-from PySide6.QtCore import QObject, Qt, QThread, Signal, QDateTime
+from PySide6.QtCore import QObject, Qt, QThread, Signal, QDateTime, QTimer
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -569,6 +569,7 @@ class KawaiiMainWindow(QMainWindow):
 
         self._prompt_manager_dialog: QDialog | None = None
         self._prompt_manager_panel: PromptManagerPanel | None = None
+        self._active_selection_dialog: SessionSelectionDialog | None = None
 
         self._toolbar: QToolBar | None = None
         self._stop_button: QToolButton | None = None
@@ -793,7 +794,11 @@ class KawaiiMainWindow(QMainWindow):
             "Log files (*.log *.txt);;All files (*)",
         )
         if path:
-            self.load_log_file(Path(path))
+            # Present the session selection dialog once the event loop regains
+            # control. Showing a modal dialog immediately after the native
+            # ``QFileDialog`` closes can prevent it from appearing on some
+            # platforms.
+            QTimer.singleShot(0, lambda: self.load_log_file(Path(path)))
 
     def load_log_file(self, path: Path) -> None:
         try:
@@ -810,27 +815,53 @@ class KawaiiMainWindow(QMainWindow):
             )
             return
 
+        self._show_session_selection_dialog(path, sessions)
+
+    def _show_session_selection_dialog(
+        self, path: Path, sessions: list[Session]
+    ) -> None:
+        if self._active_selection_dialog is not None:
+            self._active_selection_dialog.close()
+            self._active_selection_dialog.deleteLater()
+            self._active_selection_dialog = None
+
         dialog = SessionSelectionDialog(self, sessions)
-        if dialog.exec() != QDialog.Accepted:
-            return
+        dialog.setAttribute(Qt.WA_DeleteOnClose)
 
-        selected_sessions = dialog.selected_sessions()
-        if not selected_sessions:
-            return
+        def _on_dialog_finished(_result: int) -> None:
+            if self._active_selection_dialog is dialog:
+                self._active_selection_dialog = None
 
+        def _on_dialog_accepted() -> None:
+            selected_sessions = dialog.selected_sessions()
+            if not selected_sessions:
+                return
+            self._finalise_log_selection(
+                path, selected_sessions, dialog.selection_summary()
+            )
+
+        dialog.accepted.connect(_on_dialog_accepted)
+        dialog.finished.connect(_on_dialog_finished)
+
+        self._active_selection_dialog = dialog
+        dialog.open()
+
+    def _finalise_log_selection(
+        self, path: Path, sessions: list[Session], summary: str
+    ) -> None:
         self._last_log_path = path
         self.session_list.clear()
         self.detail_widget.clear()
         self._processed_sessions.clear()
         self._session_overrides.clear()
-        self.status_label.setText(dialog.selection_summary())
+        self.status_label.setText(summary)
         self._start_worker(
             log_path=path,
             model=self._default_model,
             chunk_size=self._default_chunk_size,
             prompt_path=self._default_prompt_path,
-            selection_summary=dialog.selection_summary(),
-            sessions=selected_sessions,
+            selection_summary=summary,
+            sessions=sessions,
         )
 
     def _start_worker(
