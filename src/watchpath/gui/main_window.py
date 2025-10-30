@@ -695,12 +695,14 @@ class KawaiiMainWindow(QMainWindow):
             card_bg = "#ffffff"
             border = "#d8ccff"
             tile_bg = "#ede9fe"
+            accent = "#7c3aed"
         else:
             base_bg = "#0f172a"
             text = "#e2e8f0"
             card_bg = "#1e293b"
             border = "#334155"
             tile_bg = "#1b2536"
+            accent = "#c084fc"
 
         app.setStyleSheet(
             "QMainWindow {"
