@@ -267,6 +267,12 @@ class SessionSelectionDialog(QDialog):
             microsecond=microseconds
         )
 
+    @staticmethod
+    def _ensure_utc(value: datetime) -> datetime:
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc)
+
     def __init__(self, parent: Optional[QWidget], sessions: list[Session]) -> None:
         super().__init__(parent)
         self.setObjectName("SessionSelectionDialog")
@@ -490,6 +496,10 @@ class SessionSelectionDialog(QDialog):
             return False
         session_start = session.start or session.records[0].timestamp
         session_end = session.end or session.records[-1].timestamp
+        start = SessionSelectionDialog._ensure_utc(start)
+        end = SessionSelectionDialog._ensure_utc(end)
+        session_start = SessionSelectionDialog._ensure_utc(session_start)
+        session_end = SessionSelectionDialog._ensure_utc(session_end)
         return (session_end >= start) and (session_start <= end)
 
     def _on_accept(self) -> None:
