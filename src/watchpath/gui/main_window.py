@@ -393,15 +393,15 @@ class SessionSelectionDialog(QDialog):
         if parent and hasattr(parent, "theme_combo"):
             theme = parent.theme_combo.currentText()
         if theme == "light":
-            bg = "#f9f4ff"
-            text = "#2d2240"
-            accent = "#ab47bc"
-            card = "rgba(149, 117, 205, 0.12)"
+            bg = "#f7f4ff"
+            text = "#1f1b2e"
+            accent = "#7c3aed"
+            card = "rgba(124, 58, 237, 0.08)"
         else:
-            bg = "#151b2c"
-            text = "#f7f8ff"
-            accent = "#f48fb1"
-            card = "rgba(255, 255, 255, 0.08)"
+            bg = "#111a2e"
+            text = "#e2e8f0"
+            accent = "#c084fc"
+            card = "rgba(15, 23, 42, 0.65)"
 
         self.setStyleSheet(
             "QDialog#SessionSelectionDialog {"
@@ -690,17 +690,17 @@ class KawaiiMainWindow(QMainWindow):
         if not app:
             return
         if theme == "light":
-            base_bg = "#fdf9ff"
-            text = "#2d334a"
-            card_bg = "rgba(255, 255, 255, 0.92)"
-            border = "#d4c6ff"
-            tile_bg = "rgba(149, 117, 205, 0.18)"
+            base_bg = "#f8f5ff"
+            text = "#1f2937"
+            card_bg = "#ffffff"
+            border = "#d8ccff"
+            tile_bg = "#ede9fe"
         else:
-            base_bg = "#101421"
-            text = "#edf1ff"
-            card_bg = "rgba(255, 255, 255, 0.06)"
-            border = "#3a466b"
-            tile_bg = "rgba(255, 255, 255, 0.09)"
+            base_bg = "#0f172a"
+            text = "#e2e8f0"
+            card_bg = "#1e293b"
+            border = "#334155"
+            tile_bg = "#1b2536"
 
         app.setStyleSheet(
             "QMainWindow {"
@@ -737,17 +737,17 @@ class KawaiiMainWindow(QMainWindow):
 
         theme = self.theme_combo.currentText() if hasattr(self, "theme_combo") else "dark"
         if theme == "light":
-            bar_bg = "#f2ecff"
-            button_bg = "rgba(149, 117, 205, 0.18)"
-            button_hover = "rgba(149, 117, 205, 0.3)"
-            text_color = "#2d2240"
-            accent = "#ab47bc"
+            bar_bg = "#f1ecff"
+            button_bg = "#ede9fe"
+            button_hover = "#e0d7fe"
+            text_color = "#1f1b2e"
+            accent = "#7c3aed"
         else:
-            bar_bg = "#171d2b"
-            button_bg = "rgba(255, 255, 255, 0.08)"
-            button_hover = "rgba(255, 255, 255, 0.18)"
-            text_color = "#f7f8ff"
-            accent = "#f48fb1"
+            bar_bg = "#131d32"
+            button_bg = "#1b2536"
+            button_hover = "#243049"
+            text_color = "#e2e8f0"
+            accent = "#c084fc"
 
         toolbar_style = (
             "QToolBar#MochiToolbar {"
