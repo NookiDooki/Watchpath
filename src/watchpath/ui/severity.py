@@ -1,5 +1,9 @@
 """Shared helpers for mapping anomaly scores to expressive UI styles."""
 
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Converts raw scores into the Mochi moodboard.                │
+# ╰──────────────────────────────────────────────────────────────╯
+
 from __future__ import annotations
 
 import re
@@ -117,6 +121,11 @@ def coerce_score(value: Any) -> Optional[float]:
         return max(0.0, min(numeric, 1.0))
 
     return None
+
+
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Mapping helper                                                │
+# ╰──────────────────────────────────────────────────────────────╯
 
 
 def severity_for_score(score: Optional[float]) -> SeverityStyle:

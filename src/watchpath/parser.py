@@ -12,6 +12,9 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 from .ai import SessionAnalysis
 
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Pattern and timing defaults reused throughout the module.   │
+# ╰──────────────────────────────────────────────────────────────╯
 LOG_PATTERN = re.compile(
     r"(?P<ip>\S+)\s+(?P<ident>\S+)\s+(?P<user>\S+)\s+\[(?P<time>[^\]]+)\]\s+\"(?P<request>[^\"]*)\"\s+"
     r"(?P<status>\d{3})\s+(?P<size>\S+)\s+\"(?P<referrer>[^\"]*)\"\s+\"(?P<agent>[^\"]*)\""
@@ -19,6 +22,11 @@ LOG_PATTERN = re.compile(
 
 TIME_FORMAT = "%d/%b/%Y:%H:%M:%S %z"
 DEFAULT_INACTIVITY_WINDOW = timedelta(minutes=15)
+
+
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Core data structures                                         │
+# ╰──────────────────────────────────────────────────────────────╯
 
 
 @dataclass
@@ -74,6 +82,13 @@ class SessionStatistics:
     request_timeline: List[Tuple[str, int]]
 
 
+    
+
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Parsing helpers                                              │
+# ╰──────────────────────────────────────────────────────────────╯
+
+
 def chunk_log_file(log_path: str, chunk_size: int = 50) -> Iterable[str]:
     """Yield raw log lines from ``log_path`` in chunks of ``chunk_size``."""
 
@@ -84,6 +99,9 @@ def chunk_log_file(log_path: str, chunk_size: int = 50) -> Iterable[str]:
 
 def parse_log_line(line: str) -> Optional[LogRecord]:
     """Parse a single access log line into a :class:`LogRecord`."""
+
+    # Each line is matched with the compiled regex. A ``None`` result means
+    # the entry is malformed and should be ignored gracefully.
 
     match = LOG_PATTERN.match(line)
     if not match:
@@ -96,6 +114,8 @@ def parse_log_line(line: str) -> Optional[LogRecord]:
         return None
 
     request = match.group("request").split()
+    # Requests sometimes omit pieces (for example when the method is missing),
+    # so we pad the result to avoid ``IndexError`` surprises downstream.
     method, path, protocol = (request + ["", "", ""])[:3]
 
     size_token = match.group("size")
@@ -159,6 +179,10 @@ def load_sessions(
 def summarize_sessions(sessions: Iterable[Session]) -> SessionStatistics:
     """Compute aggregate metrics for the supplied sessions."""
 
+    # Convert to a list so we can iterate multiple times without exhausting an
+    # iterator passed by the caller. This keeps the function ergonomic in the
+    # CLI and GUI pipelines where generators are common.
+
     session_list = list(sessions)
     durations = [session.duration.total_seconds() for session in session_list if session.duration]
     mean_duration = statistics.mean(durations) if durations else 0.0
@@ -172,7 +196,8 @@ def summarize_sessions(sessions: Iterable[Session]) -> SessionStatistics:
         for record in session.records:
             request_counts.update([record.method or "UNKNOWN"])
             status_counts.update([record.status])
-            # Normalise to minute precision for the global sparkline chart.
+            # Normalise to minute precision for the global sparkline chart so
+            # the GUI can render smooth sparklines without jitter.
             minute = record.timestamp.replace(second=0, microsecond=0)
             timeline_counts[minute] += 1
 
@@ -199,6 +224,7 @@ def build_session_payload(
 
     duration_seconds = session.duration.total_seconds() if session.duration else 0.0
     unique_paths = sorted({record.path for record in session.records if record.path})
+    # Collect method counts so both the CLI and GUI can render summaries.
     method_counts = Counter(record.method or "UNKNOWN" for record in session.records)
 
     top_ips = sorted(
@@ -251,6 +277,9 @@ def _format_duration(seconds: float) -> str:
 
 def _normalise_evidence(evidence: object) -> list[str]:
     """Return a flat list of evidence strings from ``evidence``."""
+
+    # The language model may emit strings, arrays, or nested objects. This
+    # helper smooths those possibilities into a simple list used by renderers.
 
     if evidence is None:
         return []

@@ -18,6 +18,10 @@ from .parser import (
     summarize_sessions,
 )
 
+# ╭──────────────────────────────────────────────────────────────╮
+# │ FastAPI façade for the Watchpath pipeline.                   │
+# ╰──────────────────────────────────────────────────────────────╯
+
 DEFAULT_PROMPT_PATH = Path("prompts/base_prompt.txt")
 
 AnalyzerFn = Callable[[str, str, str, str], Any]
@@ -87,6 +91,7 @@ def parse_logs(request: ParseRequest) -> dict[str, Any]:
         payload = build_session_payload(session, analysis, stats)
         formats: dict[str, str] = {}
         if request.include_text:
+            # Keep parity with CLI/GUI output formats for downstream consumers.
             formats["text"] = format_session_report(session, analysis, stats)
         if request.include_markdown:
             formats["markdown"] = format_session_markdown(session, analysis, stats)

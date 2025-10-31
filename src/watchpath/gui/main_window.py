@@ -47,8 +47,18 @@ from ..parser import (
 )
 from ..ui import GlobalStatsWidget, PromptManagerPanel, SessionDetailWidget, SessionListWidget
 
+# ╭──────────────────────────────────────────────────────────────╮
+# │ GUI payloads and defaults                                    │
+# ╰──────────────────────────────────────────────────────────────╯
+
 DEFAULT_PROMPT_PATH = Path("prompts/base_prompt.txt")
 
+
+
+
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Worker payload container                                     │
+# ╰──────────────────────────────────────────────────────────────╯
 
 @dataclass
 class ProcessedSession:
@@ -64,6 +74,9 @@ class ProcessedSession:
 class AnalysisWorker(QObject):
     """Background worker that parses logs and runs anomaly analysis."""
 
+    # ╭──────────────────────────────────────────────────────────╮
+    # │ Signals                                                   │
+    # ╰──────────────────────────────────────────────────────────╯
     status = Signal(str)
     error = Signal(str)
     progress = Signal(int, int)
@@ -109,11 +122,16 @@ class AnalysisWorker(QObject):
             if self._selection_summary:
                 self.status.emit(self._selection_summary)
 
+            # ╭───────────────────────────╮
+            # │ Global context generation │
+            # ╰───────────────────────────╯
             stats = summarize_sessions(sessions)
             self.global_stats_ready.emit(self._build_global_payload(stats))
 
             total = len(sessions)
             for index, session in enumerate(sessions, start=1):
+                # Gracefully honour stop requests while still completing the
+                # current session to keep the UI consistent.
                 if self._should_stop:
                     break
                 self.progress.emit(index, total)
@@ -147,6 +165,9 @@ class AnalysisWorker(QObject):
             "request_timeline": stats.request_timeline,
         }
 
+    # ╭──────────────────────────────────────────────────────────╮
+    # │ Session payload assembly                                 │
+    # ╰──────────────────────────────────────────────────────────╯
     def _process_session(self, session: Session, stats: SessionStatistics) -> ProcessedSession:
         chunk_text = build_session_chunk(session, self.chunk_size)
         try:
@@ -157,6 +178,8 @@ class AnalysisWorker(QObject):
                 model=self.model,
             )
         except Exception as exc:  # pragma: no cover - UI feedback path
+            # When the model call fails we still surface something actionable
+            # by replaying the raw logs to the analyst as evidence.
             fallback_evidence = "\n".join(record.raw for record in session.records[: self.chunk_size])
             analysis = SessionAnalysis(
                 session_id=session.session_id,
@@ -549,6 +572,10 @@ class SessionSelectionDialog(QDialog):
     def selection_summary(self) -> str:
         return self._selection_summary
 
+
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Main window orchestration                                    │
+# ╰──────────────────────────────────────────────────────────────╯
 
 class KawaiiMainWindow(QMainWindow):
     """Main window orchestrating the Watchpath GUI."""

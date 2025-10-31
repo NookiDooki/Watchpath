@@ -22,6 +22,12 @@ from PySide6.QtWidgets import (
 )
 
 
+
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Metadata carrier for prompt templates.                       │
+# ╰──────────────────────────────────────────────────────────────╯
+
+
 @dataclass
 class PromptEntry:
     path: Path
@@ -33,6 +39,10 @@ class PromptEntry:
 
 class PromptManagerPanel(QWidget):
     """Browse prompt templates, preview contents, and manage overrides."""
+
+    # ╭──────────────────────────────────────────────────────────╮
+    # │ Signals                                                   │
+    # ╰──────────────────────────────────────────────────────────╯
 
     overrideRequested = Signal(str)
 
@@ -120,6 +130,9 @@ class PromptManagerPanel(QWidget):
         self.preview.setPlainText(path.read_text(encoding="utf-8"))
         self._populate_history(path)
 
+    # ╭──────────────────────────────────────────────────────────╮
+    # │ Filtering + selection logic                               │
+    # ╰──────────────────────────────────────────────────────────╯
     def _populate_prompt_list(self, filter_text: str = "") -> None:
         current_path: Optional[Path] = None
         current_item = self.prompt_list.currentItem()
@@ -183,6 +196,7 @@ class PromptManagerPanel(QWidget):
             return
         path: Path = current.data(Qt.UserRole)
         if path:
+            # Emit the Qt signal as a plain string to keep slots flexible.
             self.overrideRequested.emit(str(path))
 
     def apply_override(self, path: str) -> None:
@@ -195,6 +209,8 @@ class PromptManagerPanel(QWidget):
 
 class PromptListItemWidget(QWidget):
     """Rich display for prompt entries in the list widget."""
+
+    # A dash of neon highlights prompt titles without custom delegates.
 
     def __init__(self, entry: PromptEntry) -> None:
         super().__init__()

@@ -1,5 +1,9 @@
 """Compatibility layer for historic imports of the GUI widgets."""
 
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Re-export convenience for PySide6 entry points.              │
+# ╰──────────────────────────────────────────────────────────────╯
+
 from __future__ import annotations
 
 from .main_window import AnalysisWorker, KawaiiMainWindow, ProcessedSession, DEFAULT_PROMPT_PATH

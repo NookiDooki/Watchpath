@@ -10,6 +10,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional, Sequence
 
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Structured model response                                    │
+# ╰──────────────────────────────────────────────────────────────╯
+
 
 @dataclass
 class SessionAnalysis:
@@ -20,6 +24,13 @@ class SessionAnalysis:
     analyst_note: str
     evidence: str | list[str] | None
     raw_response: str
+
+
+    
+
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Model invocation                                              │
+# ╰──────────────────────────────────────────────────────────────╯
 
 
 def analyze_logs_ollama_chunk(
@@ -70,6 +81,13 @@ def analyze_logs_ollama_chunk(
         evidence=enriched_evidence,
         raw_response=raw_output,
     )
+
+
+    
+
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Response normalisation                                        │
+# ╰──────────────────────────────────────────────────────────────╯
 
 
 def _parse_analysis_output(output: str) -> tuple[Optional[float], str, str | list[str] | None]:
@@ -126,6 +144,8 @@ def _parse_analysis_output(output: str) -> tuple[Optional[float], str, str | lis
 
     return score, note or "No analyst note provided.", evidence
 
+
+    
 
 def _enrich_analysis(
     analyst_note: str,

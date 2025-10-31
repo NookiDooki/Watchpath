@@ -1,6 +1,6 @@
-# Watchpath CLI Usage
+# Watchpath Usage Recipes
 
-The Watchpath package exposes a CLI that helps analyze access logs and report on suspicious sessions. After installing dependencies, you can run the parser from the project root:
+The Watchpath package exposes a CLI that helps analyze access logs and report on suspicious sessions. After installing dependencies (see the [main README](README.md) for quick-start commands), you can run the parser from the project root:
 
 ```bash
 python -m watchpath parse logs/apache_access_20250302.log --prompt prompts/base_prompt.txt --model mistral:7b-instruct
@@ -45,7 +45,7 @@ The icons make it easy to identify important parts of the report at a glance:
 - 🧠 **Analyst Note** — short AI-generated summary of suspicious behavior.
 - 📊 **Session & Global Statistics** — contextual metrics for the current session and the whole dataset.
 
-Use `--chunk-size` to limit how many log lines from each session are sent to the model, and `--prompt` to supply an alternate prompt template.
+Use `--chunk-size` to limit how many log lines from each session are sent to the model, and `--prompt` to supply an alternate prompt template. The [CLI guide](cli.md) details each flag, while the [GUI guide](gui.md) explains how the desktop app mirrors the same payloads.
 
 ## FastAPI Endpoint
 
@@ -62,4 +62,4 @@ curl -X POST http://localhost:8000/parse \
       }'
 ```
 
-The response contains structured session data alongside optional text/Markdown renderings, making it simple to drop analyst notes into dashboards or web views.
+The response contains structured session data alongside optional text/Markdown renderings, making it simple to drop analyst notes into dashboards or web views. Pair this with the [overview](overview.md) document for a deeper look at data flow.

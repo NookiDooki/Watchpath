@@ -15,6 +15,10 @@ from .parser import (
     summarize_sessions,
 )
 
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Public API surface for importers.                            │
+# ╰──────────────────────────────────────────────────────────────╯
+
 __all__ = [
     "Session",
     "SessionAnalysis",

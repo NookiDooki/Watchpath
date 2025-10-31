@@ -16,6 +16,10 @@ from PySide6.QtWidgets import (
 
 from .severity import coerce_score, severity_for_score
 
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Sidebar to revisit favourite sessions and comparisons.       │
+# ╰──────────────────────────────────────────────────────────────╯
+
 
 _PIN_ROLE = Qt.UserRole + 1
 
@@ -54,6 +58,9 @@ class RecentAnalysesSidebar(QWidget):
         self.list_widget.insertItem(insert_row, item)
         self._trim_to_capacity()
 
+    # ╭──────────────────────────────────────────────────────────╮
+    # │ Formatting helpers                                        │
+    # ╰──────────────────────────────────────────────────────────╯
     def _format_entry(self, payload: dict) -> str:
         session_id = payload.get("session_id", "—")
         raw_score = payload.get("anomaly_score")
@@ -110,7 +117,9 @@ class RecentAnalysesSidebar(QWidget):
         if session is not None:
             self.sessionSelected.emit(session)
 
-    # ------------------------------------------------------------------
+    # ╭──────────────────────────────────────────────────────────╮
+    # │ Context menu actions                                      │
+    # ╰──────────────────────────────────────────────────────────╯
     def _show_context_menu(self, pos: QPoint) -> None:
         item = self.list_widget.itemAt(pos)
         if item is None:

@@ -40,6 +40,10 @@ from PySide6.QtWidgets import (
 
 from .severity import SeverityStyle, coerce_score, severity_for_score
 
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Lightweight data record for the carousel list.               │
+# ╰──────────────────────────────────────────────────────────────╯
+
 
 @dataclass
 class SessionListEntry:
@@ -54,6 +58,10 @@ class SessionListEntry:
 
 class SessionListWidget(QWidget):
     """Carousel of sessions supporting multi-select and filters."""
+
+    # ╭──────────────────────────────────────────────────────────╮
+    # │ Signals                                                   │
+    # ╰──────────────────────────────────────────────────────────╯
 
     sessionActivated = Signal(object)
     selectionChanged = Signal(list)
@@ -248,6 +256,9 @@ class SessionListWidget(QWidget):
             return not entry.score_available
         return True
 
+    # ╭──────────────────────────────────────────────────────────╮
+    # │ Filtering + persistence                                   │
+    # ╰──────────────────────────────────────────────────────────╯
     def _apply_filters(self) -> None:
         query = self.search_box.text().strip().lower()
         method_value = self.method_filter.currentData()
@@ -271,6 +282,7 @@ class SessionListWidget(QWidget):
         else:
             placeholder = True
             message = (
+                # Friendly copy keeps the kawaii tone even when results vanish.
                 "No sessions match the current filters."
                 if self._entries
                 else "No sessions are available yet."
@@ -308,6 +320,7 @@ class SessionListWidget(QWidget):
             self.sessionActivated.emit(sessions[0])
 
     def _register_shortcuts(self) -> None:
+        # Small ergonomic touches keep analysts in flow while triaging.
         shortcuts = [
             ("Ctrl+F", self.search_box.setFocus),
             ("Alt+M", self.method_filter.setFocus),
