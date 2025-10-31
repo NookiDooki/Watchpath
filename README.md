@@ -75,10 +75,10 @@ pip install -r requirements.txt
 ollama pull mistral:7b-instruct  # optional but recommended
 
 # Parse the bundled sample log via the CLI
-python -m watchpath parse ./logs/apache_access_20250302.log --rich
+python -m watchpath parse ./logs/apache_access_20250302.log
 
 # Launch the Mochi Observatory GUI
-python -m watchpath gui ./logs/apache_access_20250302.log
+python -m watchpath gui
 ```
 
 ### 🪟 Windows 10/11 (PowerShell)
@@ -89,8 +89,8 @@ py -3.9 -m venv .venv
 pip install -r requirements.txt
 # Optional: ollama pull mistral:7b-instruct
 
-python -m watchpath parse .\logs\apache_access_20250302.log --output-format markdown > report.md
-python -m watchpath gui .\logs\apache_access_20250302.log
+python -m watchpath parse .\logs\apache_access_20250302.log
+python -m watchpath gui
 ```
 
 > 💡 **Tip:** Launch `python -m watchpath gui` without a file to drag-and-drop logs later. The GUI shares defaults with the CLI, so settings stay in sync.
