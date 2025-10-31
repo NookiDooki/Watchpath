@@ -6,6 +6,9 @@ PySide6 (Qt) interface. Launch it with `watchpath gui` or by calling
 in [`watchpath/gui/main_window.py`](../src/watchpath/gui/main_window.py) and composes reusable widgets
 from [`watchpath/ui`](../src/watchpath/ui).
 
+> 🎨 **Looking for screenshots or feature callouts?** The [main README](README.md) showcases the Mochi
+> Observatory, theme toggles, and quick launch commands.
+
 ## Launching the app
 
 ```bash
@@ -18,7 +21,8 @@ watchpath gui [log_path] [--model MODEL] [--chunk-size N] [--prompt PROMPT]
   action or by dragging files into the window.
 
 Make sure Qt (PySide6) and the Ollama CLI are installed in your environment. When the GUI starts it
-creates a `QApplication`, applies the default dark theme, and waits for user input.
+creates a `QApplication`, applies the default dark theme, and waits for user input. Refer back to the
+[CLI guide](cli.md) for argument parity and automation-centric usage.
 
 ## Layout overview
 

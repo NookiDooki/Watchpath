@@ -1,5 +1,9 @@
 """Global statistics dashboard widgets."""
 
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Sparkline and bar chart hub for the main window.             │
+# ╰──────────────────────────────────────────────────────────────╯
+
 from __future__ import annotations
 
 from typing import Dict, Tuple
@@ -110,15 +114,20 @@ class GlobalStatsWidget(QFrame):
         # Initialize with the default mode selected.
         self._set_mode(self._active_mode)
 
-    # ------------------------------------------------------------------
+    # ╭──────────────────────────────────────────────────────────╮
+    # │ Data refresh                                               │
+    # ╰──────────────────────────────────────────────────────────╯
     def update_stats(self, stats: Dict[str, object]) -> None:
         """Refresh the charts with ``stats``."""
 
         self._stats = stats or {}
+        # Repaint high-level counters before animating the heavier charts.
         self._refresh_metrics()
         self._render_summary()
 
-    # ------------------------------------------------------------------
+    # ╭──────────────────────────────────────────────────────────╮
+    # │ Mode switching                                            │
+    # ╰──────────────────────────────────────────────────────────╯
     def _set_mode(self, mode: str) -> None:
         if (
             mode == self._active_mode
@@ -136,7 +145,9 @@ class GlobalStatsWidget(QFrame):
         self.footer.setText(f"{mode} insights ready.")
         self._render_summary()
 
-    # ------------------------------------------------------------------
+    # ╭──────────────────────────────────────────────────────────╮
+    # │ Chart rendering                                           │
+    # ╰──────────────────────────────────────────────────────────╯
     def _render_summary(self) -> None:
         mode = self._active_mode
         if not self._stats:

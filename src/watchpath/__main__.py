@@ -6,6 +6,7 @@ from .cli import main
 
 
 def run() -> int:
+    # Keep this minimal so ``python -m watchpath`` stays lightning fast.
     return main()
 
 

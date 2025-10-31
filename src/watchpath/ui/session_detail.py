@@ -19,6 +19,10 @@ from PySide6.QtWidgets import (
 
 from .severity import coerce_score, severity_for_score
 
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Session spotlight widget with kaomoji reactions.             │
+# ╰──────────────────────────────────────────────────────────────╯
+
 
 class SessionDetailWidget(QWidget):
     """Display the details of a processed session in a compact layout."""
@@ -143,7 +147,9 @@ class SessionDetailWidget(QWidget):
 
         self._apply_severity_style(None)
 
-    # ------------------------------------------------------------------
+    # ╭──────────────────────────────────────────────────────────╮
+    # │ Reset state                                               │
+    # ╰──────────────────────────────────────────────────────────╯
     def clear(self) -> None:
         self._current_session = None
         self.session_label.setText("Select a session to begin the journey ✨")
@@ -164,6 +170,9 @@ class SessionDetailWidget(QWidget):
         self.markdown_view.clear()
         self._apply_severity_style(None)
 
+    # ╭──────────────────────────────────────────────────────────╮
+    # │ Primary rendering hook                                     │
+    # ╰──────────────────────────────────────────────────────────╯
     def display_session(self, processed: Any) -> None:
         self._current_session = processed
         payload = getattr(processed, "payload", processed)
@@ -211,7 +220,9 @@ class SessionDetailWidget(QWidget):
         self.logs_view.setPlainText(raw_logs)
         self.markdown_view.setMarkdown(getattr(processed, "markdown_report", ""))
 
-    # ------------------------------------------------------------------
+    # ╭──────────────────────────────────────────────────────────╮
+    # │ Visual theming                                            │
+    # ╰──────────────────────────────────────────────────────────╯
     def _apply_severity_style(self, score: Optional[float]) -> None:
         style = severity_for_score(score)
         self.kaomoji_label.setText(style.kaomoji)
@@ -247,6 +258,9 @@ class SessionDetailWidget(QWidget):
         self.score_card.setStyleSheet(score_style)
         self.score_progress.setStyleSheet(progress_style)
 
+    # ╭──────────────────────────────────────────────────────────╮
+    # │ Formatting helpers                                        │
+    # ╰──────────────────────────────────────────────────────────╯
     @staticmethod
     def _format_duration(value: float) -> str:
         seconds = max(0.0, float(value or 0.0))
@@ -258,6 +272,9 @@ class SessionDetailWidget(QWidget):
             return f"{int(minutes)}m {int(sec)}s"
         return f"{int(sec)}s"
 
+    # ╭──────────────────────────────────────────────────────────╮
+    # │ Evidence formatting helper                                │
+    # ╰──────────────────────────────────────────────────────────╯
     @staticmethod
     def _render_evidence_text(evidence: Any) -> str:
         if evidence is None:

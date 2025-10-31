@@ -104,10 +104,10 @@ python -m watchpath gui .\logs\apache_access_20250302.log
 
 | Layer | Key Modules | Purpose |
 | --- | --- | --- |
-| **Ingest** | [`src/watchpath/parser.py`](../src/watchpath/parser.py) | Tokenises heterogeneous logs, groups them into sessions, and computes aggregates. |
-| **Analysis** | [`src/watchpath/ai.py`](../src/watchpath/ai.py), [`src/watchpath/metrics.py`](../src/watchpath/metrics.py) | Scores sessions, enriches LLM output, and normalises evidence. |
-| **Interfaces** | [`src/watchpath/cli.py`](../src/watchpath/cli.py), [`src/watchpath/gui/main_window.py`](../src/watchpath/gui/main_window.py) | Serve reports via Rich-powered terminals or the PySide6 Mochi Observatory. |
-| **Reports & Docs** | [`docs/`](./), [`reports/`](../reports) | Living documentation, sample exports, and analysis playbooks. |
+| **Ingest** | [`src/watchpath/parser.py`](src/watchpath/parser.py) | Tokenises heterogeneous logs, groups them into sessions, and computes aggregates. |
+| **Analysis** | [`src/watchpath/ai.py`](src/watchpath/ai.py), [`src/watchpath/metrics.py`](src/watchpath/metrics.py) | Scores sessions, enriches LLM output, and normalises evidence. |
+| **Interfaces** | [`src/watchpath/cli.py`](src/watchpath/cli.py), [`src/watchpath/gui/main_window.py`](src/watchpath/gui/main_window.py) | Serve reports via Rich-powered terminals or the PySide6 Mochi Observatory. |
+| **Reports & Docs** | [`docs/`](docs), [`reports/`](reports) | Living documentation, sample exports, and analysis playbooks. |
 
 </details>
 
@@ -152,19 +152,19 @@ python -m watchpath parse ./logs/apache_access_20250302.log \
 <table>
   <tr>
     <td align="center">
-      <a href="overview.md"><img src="https://img.shields.io/badge/Overview-1d2671?style=for-the-badge&logo=bookstack&logoColor=white" alt="Overview badge"/></a>
+      <a href="docs/overview.md"><img src="https://img.shields.io/badge/Overview-1d2671?style=for-the-badge&logo=bookstack&logoColor=white" alt="Overview badge"/></a>
       <br/><sub>System map, data flow, and extensibility tips.</sub>
     </td>
     <td align="center">
-      <a href="cli.md"><img src="https://img.shields.io/badge/CLI%20Guide-c33764?style=for-the-badge&logo=terminal&logoColor=white" alt="CLI badge"/></a>
+      <a href="docs/cli.md"><img src="https://img.shields.io/badge/CLI%20Guide-c33764?style=for-the-badge&logo=terminal&logoColor=white" alt="CLI badge"/></a>
       <br/><sub>Flags, automation patterns, and troubleshooting.</sub>
     </td>
     <td align="center">
-      <a href="gui.md"><img src="https://img.shields.io/badge/GUI%20Guide-ff8fab?style=for-the-badge&logo=qt&logoColor=white" alt="GUI badge"/></a>
+      <a href="docs/gui.md"><img src="https://img.shields.io/badge/GUI%20Guide-ff8fab?style=for-the-badge&logo=qt&logoColor=white" alt="GUI badge"/></a>
       <br/><sub>Mochi Observatory tour, threading, and UX tips.</sub>
     </td>
     <td align="center">
-      <a href="usage.md"><img src="https://img.shields.io/badge/Usage%20Recipes-8A2BE2?style=for-the-badge&logo=markdown&logoColor=white" alt="Usage badge"/></a>
+      <a href="docs/usage.md"><img src="https://img.shields.io/badge/Usage%20Recipes-8A2BE2?style=for-the-badge&logo=markdown&logoColor=white" alt="Usage badge"/></a>
       <br/><sub>Sample commands, API snippets, and export formats.</sub>
     </td>
   </tr>
@@ -177,7 +177,7 @@ python -m watchpath parse ./logs/apache_access_20250302.log \
 - `prompts/base_prompt.txt` – baseline LLM instructions; duplicate it when crafting incident-specific voices.
 - `logs/` – bundled sample datasets for Apache, database, and system activity.
 - `reports/` – curated Markdown exports you can adapt for stakeholder briefings.
-- [`docs/overview.md`](overview.md) – deep dive into architecture and extensibility patterns.
+- [`docs/overview.md`](docs/overview.md) – deep dive into architecture and extensibility patterns.
 
 ---
 

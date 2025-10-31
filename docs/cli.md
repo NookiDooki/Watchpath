@@ -6,6 +6,9 @@ model, and render structured anomaly reports. The CLI lives in [`watchpath/cli.p
 and is accessible either through the `watchpath` console script (if installed) or by running
 `python -m watchpath` directly.
 
+> 🌸 **Need visuals or quick starts?** Visit the [main README](README.md) for animated headers, quick
+> install steps, and cross-links to the rest of the docs family.
+
 ## Commands
 
 Watchpath provides two subcommands: `parse` for terminal-based analysis and `gui` for launching the
@@ -63,12 +66,13 @@ watchpath parse logs/example.log --confirm-each-session
 
 `watchpath parse` caps the analysis to the first five sessions by default (`DEFAULT_SESSION_LIMIT`).
 Use `--confirm-each-session` together with targeted log files when you need to prioritise specific
-traffic.
+traffic. For richer recipes and automation patterns, jump to [Usage recipes](usage.md).
 
 ### `watchpath gui`
 
 `watchpath gui` provides a convenience shortcut for starting the Qt-based interface described in the
-[GUI guide](gui.md). It accepts a subset of the parse options:
+[GUI guide](gui.md). It accepts a subset of the parse options and mirrors the CLI defaults so both
+experiences stay aligned:
 
 | Option | Description |
 | --- | --- |

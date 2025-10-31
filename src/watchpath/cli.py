@@ -19,8 +19,18 @@ from .parser import (
     summarize_sessions,
 )
 
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Shared defaults                                               │
+# ╰──────────────────────────────────────────────────────────────╯
+
 DEFAULT_PROMPT_PATH = Path("prompts/base_prompt.txt")
-DEFAULT_SESSION_LIMIT = int(input("How many lines would you like to analyze?: "))
+DEFAULT_SESSION_LIMIT = 5
+# Keep a small default so analysts get a quick sample but can opt-in to more sessions.
+
+
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Parser construction                                           │
+# ╰──────────────────────────────────────────────────────────────╯
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -108,6 +118,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     return args.func(args)
+
+
+    
+
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Command handlers                                              │
+# ╰──────────────────────────────────────────────────────────────╯
 
 
 def _handle_parse_command(args: argparse.Namespace) -> int:
@@ -212,6 +229,13 @@ def _prompt_to_continue() -> bool:
         return True
 
     return response in {"y", "yes"}
+
+
+    
+
+# ╭──────────────────────────────────────────────────────────────╮
+# │ Output renderers                                              │
+# ╰──────────────────────────────────────────────────────────────╯
 
 
 def _print_rich_reports(payloads: list[dict]) -> None:
