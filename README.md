@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&weight=500&size=22&pause=1500&color=C33764&center=true&vCenter=true&width=602&lines=from+raw+access+logs+to+kawaii+incident+briefings;Dual+CLI+%26+PySide6+workflows;LLM+notes+without+leaving+your+perimeter" alt="Animated Watchpath tagline" />
+  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&weight=500&size=22&pause=1500&color=C33764&center=true&vCenter=true&width=602&lines=from+raw+access+logs+to+incident+briefings;Dual+CLI+%26+PySide6+workflows;LLM+notes+without+leaving+your+perimeter" alt="Animated Watchpath tagline" />
 </p>
 
 <p align="center">
