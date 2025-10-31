@@ -101,6 +101,8 @@ def test_summarize_sessions_and_format_report(tmp_path):
     assert pytest.approx(stats.mean_session_duration, rel=0.01) == 120.0
     assert stats.ip_distribution["192.168.1.11"] == 1
     assert stats.request_counts["GET"] == 2
+    assert stats.status_distribution[200] == 2
+    assert stats.request_timeline
 
     first_session = sessions[0]
     analysis = SessionAnalysis(
@@ -125,6 +127,7 @@ def test_summarize_sessions_and_format_report(tmp_path):
     assert payload["session_id"] == first_session.session_id
     assert payload["session_stats"]["request_count"] == len(first_session.records)
     assert "global_stats" in payload
+    assert payload["records"]
 
 
 def test_chunk_log_file_reads_chunks(tmp_path):
