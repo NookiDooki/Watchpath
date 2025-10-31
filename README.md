@@ -40,7 +40,7 @@
   <table>
     <tr>
       <td align="left">🧠 <strong>Hybrid analytics</strong><br/><em>Deterministic statistics meet LLM narration so every session comes with context.</em></td>
-      <td align="left">💻 <strong>Dual experience</strong><br/><em>Choose between an automation-friendly CLI or the kawaii "Mochi Observatory" GUI.</em></td>
+      <td align="left">💻 <strong>Dual experience</strong><br/><em>Choose between an automation-friendly CLI or the "Mochi Observatory" GUI.</em></td>
     </tr>
     <tr>
       <td align="left">🔐 <strong>Local by design</strong><br/><em>Bring your own Ollama model and keep sensitive traffic within your perimeter.</em></td>
@@ -188,7 +188,7 @@ We love contributions! Please:
 1. Open an issue or discussion for larger ideas.
 2. Include tests (`pytest`) or sample logs when altering behaviour.
 3. Share screenshots/recordings for UI changes so others can preview the Mochi glow.
-4. Respect the kawaii vibes—comments and copy should stay playful yet informative.
+4. Respect the vibes—comments and copy should stay playful yet informative.
 
 <p align="center">
   <img src="https://capsule-render.vercel.app/api?type=waving&height=120&section=footer&color=0:c33764,100:1d2671" alt="Watchpath footer" />
