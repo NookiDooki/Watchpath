@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&height=180&text=Watchpath%20+Mochi%20Observatory&fontSize=42&color=0:1d2671,100:c33764&fontColor=ffffff" alt="Watchpath Observatory" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&height=180&text=Watchpath%20And%20The%20Mochi%20Observatory&fontSize=42&color=0:1d2671,100:c33764&fontColor=ffffff" alt="Watchpath Observatory" />
 </p>
 
 <p align="center">
